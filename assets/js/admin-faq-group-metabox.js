@@ -62,10 +62,63 @@
 			tolerance: 'pointer',
 			axis: 'y',
 			start: function (event, ui) {
+				// Save and remove TinyMCE editors before dragging to prevent DOM issues
+				var $row = ui.item;
+				var editorIds = [];
+				
+				// Find all textareas that might have editors (both ID patterns and class-based)
+				$row.find('textarea.aio-faq-group-answer-editor, textarea[id^="aio_faq_group_answer_"], textarea[id^="aio-faq-group-answer-"]').each(function () {
+					var $textarea = $(this);
+					var id = $textarea.attr('id');
+					if (id && window.tinymce) {
+						var editor = window.tinymce.get(id);
+						if (editor) {
+							// Save editor content before removing
+							if (!editor.isHidden()) {
+								editor.save();
+							}
+							// Remove editor to prevent DOM access errors during drag
+							editor.remove();
+							editorIds.push(id);
+						}
+					}
+				});
+				
+				// Store editor IDs for restoration after drag
+				ui.item.data('editor-ids', editorIds);
+				
 				// Add visual feedback when dragging starts
 				ui.placeholder.height(ui.item.height());
 			},
 			stop: function (event, ui) {
+				// Restore TinyMCE editors after dragging
+				var $row = ui.item;
+				var editorIds = ui.item.data('editor-ids') || [];
+				
+				// Use wp.oldEditor if available, otherwise fallback to wp.editor
+				var editorAPI = (window.wp && window.wp.oldEditor && typeof window.wp.oldEditor.initialize === 'function')
+					? window.wp.oldEditor
+					: (window.wp && window.wp.editor && typeof window.wp.editor.initialize === 'function' ? window.wp.editor : null);
+				
+				if (editorAPI) {
+					editorIds.forEach(function (id) {
+						var $textarea = $row.find('textarea#' + id);
+						if ($textarea.length) {
+							// Reinitialize the editor after drag completes
+							editorAPI.initialize(id, {
+								tinymce: {
+									wpautop: true
+								},
+								quicktags: true,
+								mediaButtons: false
+							});
+						}
+					});
+				}
+				
+				// Clean up stored data
+				ui.item.removeData('editor-ids');
+				
 				// Renumber checkboxes after sorting
 				renumberGroupCheckboxes();
 			}
