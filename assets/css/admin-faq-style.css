@@ -193,6 +193,30 @@
 	color: var(--color-slate-600);
 }
 
+/* ============================================
+   Sortable Drag-and-Drop Styles
+   ============================================ */
+
+.aio-faq-sort-placeholder {
+	display: table-row;
+	height: 60px;
+	background: var(--color-slate-100);
+	border: 2px dashed var(--color-slate-300);
+	border-radius: var(--radius-md);
+	opacity: 0.5;
+}
+
+.aio-faq-group-table .ui-sortable-helper {
+	display: table-row;
+	background: var(--color-white);
+	box-shadow: var(--shadow-lg);
+	opacity: 0.8;
+}
+
+.aio-faq-group-table .ui-sortable-helper td {
+	background: var(--color-white);
+}
+
 .aio-faq-group-table td {
 	vertical-align: top;
 }

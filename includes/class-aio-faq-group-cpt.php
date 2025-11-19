@@ -98,7 +98,7 @@ class AIO_Faq_Group_CPT {
 		wp_enqueue_script(
 			'aio-faq-group-metabox',
 			AIO_FAQ_PLUGIN_URL . 'assets/js/admin-faq-group-metabox.js',
-			array( 'jquery', 'wp-editor' ),
+			array( 'jquery', 'jquery-ui-sortable', 'wp-editor' ),
 			AIO_FAQ_VERSION,
 			true
 		);

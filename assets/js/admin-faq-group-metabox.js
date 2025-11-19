@@ -52,6 +52,25 @@
 			return;
 		}
 
+		// Initialize sortable for drag-and-drop reordering
+		$body.sortable({
+			handle: '.aio-faq-sort-handle',
+			items: '.aio-faq-question-row',
+			placeholder: 'aio-faq-sort-placeholder',
+			cursor: 'move',
+			opacity: 0.8,
+			tolerance: 'pointer',
+			axis: 'y',
+			start: function (event, ui) {
+				// Add visual feedback when dragging starts
+				ui.placeholder.height(ui.item.height());
+			},
+			stop: function (event, ui) {
+				// Renumber checkboxes after sorting
+				renumberGroupCheckboxes();
+			}
+		});
+
 		var rowTemplate = $('#tmpl-aio-faq-group-row').html();
 
 		$('#aio-faq-group-add-row').on('click', function (e) {
@@ -64,6 +83,8 @@
 			$body.append($row);
 			initNewEditor($row);
 			renumberGroupCheckboxes();
+			// Refresh sortable to include the new row
+			$body.sortable('refresh');
 		});
 
 		$body.on('click', '.aio-faq-remove-row', function (e) {
@@ -86,6 +107,8 @@
 
 			$row.remove();
 			renumberGroupCheckboxes();
+			// Refresh sortable after removing a row
+			$body.sortable('refresh');
 		});
 	});
 })(jQuery);
