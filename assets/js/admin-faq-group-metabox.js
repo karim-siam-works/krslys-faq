@@ -12,35 +12,36 @@
 	}
 
 	function initNewEditor($row) {
-		console.log('initNewEditor', $row);
 		var $textarea = $row.find('.aio-faq-group-answer-editor');
 		if (!$textarea.length) {
 			return;
 		}
 
+		// Check if WordPress editor APIs are available
+		if (!window.wp || !window.wp.editor) {
+			return;
+		}
+
+		// Ensure textarea has a unique ID before initialization
 		var id = $textarea.attr('id');
-		console.log('id', id);
-		wp.editor.initialize(id, true);
 		if (!id) {
 			id = 'aio-faq-group-answer-' + String(Date.now());
 			$textarea.attr('id', id);
 		}
 
-		if (!window.wp) {
-			return;
-		}
+		// Use wp.oldEditor if available (alias for wp.editor in WordPress 5.x+), otherwise fallback to wp.editor
+		var editorAPI = (window.wp.oldEditor && typeof window.wp.oldEditor.initialize === 'function') 
+			? window.wp.oldEditor 
+			: (window.wp.editor && typeof window.wp.editor.initialize === 'function' ? window.wp.editor : null);
 
-		// WP 5.x/6.x exposes the classic editor API as wp.oldEditor.
-		if (wp.oldEditor && typeof wp.oldEditor.initialize === 'function') {
-			wp.oldEditor.initialize(id, {
-				teeny: true,
-				mediaButtons: false,
-			});
-		} else if (wp.editor && typeof wp.editor.initialize === 'function') {
-			// Back-compat for older versions.
-			wp.editor.initialize(id, {
-				teeny: true,
-				mediaButtons: false,
+		if (editorAPI) {
+			// Initialize TinyMCE editor with teeny settings matching wp_editor() PHP call
+			editorAPI.initialize(id, {
+				tinymce: {
+					wpautop: true
+				},
+				quicktags: true,
+				mediaButtons: false
 			});
 		}
 	}
@@ -69,12 +70,14 @@
 			e.preventDefault();
 			var $row = $(this).closest('.aio-faq-question-row');
 
-			// If using TinyMCE, remove its instance to avoid leaks.
-			if (window.tinymce) {
-				var $textarea = $row.find('.aio-faq-group-answer-editor');
-				if ($textarea.length) {
-					var id = $textarea.attr('id');
-					var editor = tinymce.get(id);
+			// Remove TinyMCE editor instance to avoid leaks
+			var $textarea = $row.find('.aio-faq-group-answer-editor');
+			if ($textarea.length) {
+				var id = $textarea.attr('id');
+				if (id && window.wp && window.wp.editor && typeof window.wp.editor.remove === 'function') {
+					window.wp.editor.remove(id);
+				} else if (id && window.tinymce) {
+					var editor = window.tinymce.get(id);
 					if (editor) {
 						editor.remove();
 					}
