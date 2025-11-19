@@ -1,7 +1,104 @@
+/* ============================================
+   Design System Variables
+   ============================================ */
+
+:root {
+	/* Typography */
+	--font-family-base: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	--font-size-xs: 0.75rem;      /* 12px */
+	--font-size-sm: 0.875rem;     /* 14px */
+	--font-size-base: 1rem;       /* 16px */
+	--font-size-lg: 1.125rem;     /* 18px */
+	--font-size-xl: 1.25rem;      /* 20px */
+	
+	--font-weight-normal: 400;
+	--font-weight-medium: 500;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
+	
+	--line-height-tight: 1.25;
+	--line-height-normal: 1.5;
+	--line-height-relaxed: 1.75;
+	
+	--letter-spacing-tight: -0.025em;
+	--letter-spacing-normal: 0;
+	--letter-spacing-wide: 0.025em;
+	--letter-spacing-wider: 0.05em;
+	
+	/* Color Palette - Slate/Gray Neutrals */
+	--color-slate-50: #f8fafc;
+	--color-slate-100: #f1f5f9;
+	--color-slate-200: #e2e8f0;
+	--color-slate-300: #cbd5e1;
+	--color-slate-400: #94a3b8;
+	--color-slate-500: #64748b;
+	--color-slate-600: #475569;
+	--color-slate-700: #334155;
+	--color-slate-800: #1e293b;
+	--color-slate-900: #0f172a;
+	
+	/* Primary Accent Color */
+	--color-primary-500: #3b82f6;
+	--color-primary-600: #2563eb;
+	--color-primary-700: #1d4ed8;
+	
+	/* Semantic Colors */
+	--color-error-50: #fef2f2;
+	--color-error-100: #fee2e2;
+	--color-error-500: #ef4444;
+	--color-error-600: #dc2626;
+	--color-error-700: #991b1b;
+	
+	--color-white: #ffffff;
+	--color-black: #000000;
+	
+	/* Spacing System (rems) */
+	--spacing-1: 0.25rem;   /* 4px */
+	--spacing-2: 0.5rem;    /* 8px */
+	--spacing-3: 0.75rem;   /* 12px */
+	--spacing-4: 1rem;      /* 16px */
+	--spacing-5: 1.25rem;   /* 20px */
+	--spacing-6: 1.5rem;    /* 24px */
+	--spacing-8: 2rem;      /* 32px */
+	--spacing-10: 2.5rem;   /* 40px */
+	--spacing-12: 3rem;     /* 48px */
+	
+	/* Border Radius */
+	--radius-sm: 0.375rem;  /* 6px */
+	--radius-md: 0.5rem;    /* 8px */
+	--radius-lg: 0.75rem;   /* 12px */
+	--radius-xl: 1rem;      /* 16px */
+	
+	/* Shadows */
+	--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+	--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+	
+	/* Transitions */
+	--transition-fast: 150ms ease;
+	--transition-base: 200ms ease;
+	--transition-slow: 300ms ease;
+}
+
+/* ============================================
+   Base Typography
+   ============================================ */
+
+.aio-faq-admin,
+.aio-faq-admin * {
+	font-family: var(--font-family-base);
+	box-sizing: border-box;
+}
+
+/* ============================================
+   Layout & Container Styles
+   ============================================ */
+
 .aio-faq-admin__layout {
 	display: flex;
-	gap: 32px;
-	margin-top: 20px;
+	gap: var(--spacing-8);
+	margin-top: var(--spacing-5);
 }
 
 .aio-faq-admin__left {
@@ -12,30 +109,51 @@
 .aio-faq-admin__right {
 	flex: 1 1 45%;
 	min-width: 0;
-	background: #ffffff;
-	border: 1px solid #e5e7eb;
-	border-radius: 8px;
-	padding: 16px 20px 20px;
-	box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+	background: var(--color-white);
+	border: 1px solid var(--color-slate-200);
+	border-radius: var(--radius-lg);
+	padding: var(--spacing-6) var(--spacing-5) var(--spacing-5);
+	box-shadow: var(--shadow-lg);
+	transition: box-shadow var(--transition-base);
+}
+
+.aio-faq-admin__right:hover {
+	box-shadow: var(--shadow-xl);
 }
 
 .aio-faq-admin__right h2 {
 	margin-top: 0;
+	font-size: var(--font-size-xl);
+	font-weight: var(--font-weight-semibold);
+	line-height: var(--line-height-tight);
+	color: var(--color-slate-800);
+	letter-spacing: var(--letter-spacing-tight);
 }
 
 .aio-faq-admin .form-table th {
-	width: 220px;
+	width: 13.75rem; /* 220px */
+	font-weight: var(--font-weight-medium);
+	color: var(--color-slate-700);
 }
 
 .aio-faq-admin .aio-faq {
-	margin-top: 12px;
+	margin-top: var(--spacing-3);
 }
+
+/* ============================================
+   Questions Table (Legacy) - Maintain Compatibility
+   ============================================ */
 
 .aio-faq-questions-table .aio-faq-sort-handle {
 	cursor: move;
 	text-align: center;
-	color: #9ca3af;
-	font-size: 18px;
+	color: var(--color-slate-400);
+	font-size: var(--font-size-lg);
+	transition: color var(--transition-base);
+}
+
+.aio-faq-questions-table .aio-faq-sort-handle:hover {
+	color: var(--color-slate-600);
 }
 
 .aio-faq-questions-table .aio-faq-visible-cell {
@@ -46,8 +164,33 @@
 	text-align: right;
 }
 
+/* ============================================
+   FAQ Group Table - Modern Styling
+   ============================================ */
+
+.aio-faq-group-table {
+	border-collapse: separate;
+	border-spacing: 0;
+	width: 100%;
+	background: var(--color-white);
+	border-radius: var(--radius-lg);
+	overflow: hidden;
+	box-shadow: var(--shadow-sm);
+}
+
 .aio-faq-group-table .aio-faq-sort-handle {
 	vertical-align: top;
+	cursor: move;
+	text-align: center;
+	color: var(--color-slate-400);
+	font-size: var(--font-size-lg);
+	line-height: var(--line-height-normal);
+	transition: color var(--transition-base);
+	user-select: none;
+}
+
+.aio-faq-group-table .aio-faq-sort-handle:hover {
+	color: var(--color-slate-600);
 }
 
 .aio-faq-group-table td {
@@ -56,11 +199,21 @@
 
 .aio-faq-group-table th,
 .aio-faq-group-table td {
-	padding: 8px 10px;
+	padding: var(--spacing-4) var(--spacing-3);
+}
+
+.aio-faq-group-table th {
+	font-weight: var(--font-weight-semibold);
+	font-size: var(--font-size-sm);
+	color: var(--color-slate-700);
+	text-transform: uppercase;
+	letter-spacing: var(--letter-spacing-wider);
+	background: var(--color-slate-50);
+	border-bottom: 1px solid var(--color-slate-200);
 }
 
 .aio-faq-group-table td:first-child {
-	width: 32px;
+	width: 2rem; /* 32px */
 	white-space: nowrap;
 }
 
@@ -92,11 +245,14 @@
 
 .aio-faq-content-cell {
 	vertical-align: top;
+	position: relative;
+	padding: var(--spacing-5) var(--spacing-6) var(--spacing-5) var(--spacing-4);
+	padding-right: 3.5rem; /* 56px - space for remove button */
 }
 
 .aio-faq-question-field,
 .aio-faq-answer-field {
-	margin-bottom: 20px;
+	margin-bottom: var(--spacing-6);
 }
 
 .aio-faq-question-field:last-child,
@@ -106,22 +262,49 @@
 
 .aio-faq-field-label {
 	display: block;
-	font-weight: 600;
-	font-size: 13px;
-	color: #374151;
-	margin-bottom: 8px;
+	font-weight: var(--font-weight-semibold);
+	font-size: var(--font-size-xs);
+	color: var(--color-slate-600);
+	margin-bottom: var(--spacing-2);
 	text-transform: uppercase;
-	letter-spacing: 0.5px;
-	font-size: 11px;
+	letter-spacing: var(--letter-spacing-wider);
+	line-height: var(--line-height-tight);
 }
 
 .aio-faq-question-field input[type="text"] {
 	width: 100%;
 	margin-bottom: 0;
+	padding: var(--spacing-3) var(--spacing-4);
+	font-size: var(--font-size-base);
+	line-height: var(--line-height-normal);
+	color: var(--color-slate-800);
+	background: var(--color-white);
+	border: 1px solid var(--color-slate-300);
+	border-radius: var(--radius-md);
+	transition: all var(--transition-base);
+}
+
+.aio-faq-question-field input[type="text"]:focus {
+	outline: none;
+	border-color: var(--color-primary-500);
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.aio-faq-question-field input[type="text"]::placeholder {
+	color: var(--color-slate-400);
 }
 
 .aio-faq-answer-field .wp-editor-wrap {
 	margin-top: 0;
+	border: 1px solid var(--color-slate-300);
+	border-radius: var(--radius-md);
+	overflow: hidden;
+	transition: all var(--transition-base);
+}
+
+.aio-faq-answer-field .wp-editor-wrap:focus-within {
+	border-color: var(--color-primary-500);
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* ============================================
@@ -130,12 +313,14 @@
 
 .aio-faq-options-cell {
 	vertical-align: top;
+	padding: var(--spacing-5) var(--spacing-4);
+	background: var(--color-slate-50);
 }
 
 .aio-faq-options-group {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+	gap: var(--spacing-4);
 }
 
 .aio-faq-options-group p {
@@ -144,18 +329,28 @@
 
 .aio-faq-option-label {
 	display: block;
-	font-size: 11px;
-	font-weight: 600;
-	color: #64748b;
-	margin-bottom: 6px;
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-semibold);
+	color: var(--color-slate-600);
+	margin-bottom: var(--spacing-2);
 	text-transform: uppercase;
-	letter-spacing: 0.5px;
+	letter-spacing: var(--letter-spacing-wider);
+	line-height: var(--line-height-tight);
 }
 
 .aio-faq-options-group label {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: var(--spacing-2);
+	font-size: var(--font-size-sm);
+	line-height: var(--line-height-normal);
+	color: var(--color-slate-700);
+	cursor: pointer;
+	transition: color var(--transition-base);
+}
+
+.aio-faq-options-group label:hover {
+	color: var(--color-slate-900);
 }
 
 /* Checkbox labels should be horizontal */
@@ -164,7 +359,7 @@
 .aio-faq-options-group p:nth-child(3) label {
 	flex-direction: row;
 	align-items: center;
-	gap: 8px;
+	gap: var(--spacing-2);
 }
 
 .aio-faq-options-group p:nth-child(1) label .aio-faq-option-label,
@@ -173,64 +368,212 @@
 	display: none;
 }
 
-/* ============================================
-   Remove Button with X Icon
-   ============================================ */
-
-.aio-faq-actions-cell {
-	text-align: center;
-	vertical-align: middle;
+/* Checkbox Styling */
+.aio-faq-options-group input[type="checkbox"] {
+	width: 1.125rem; /* 18px */
+	height: 1.125rem; /* 18px */
+	margin: 0;
+	cursor: pointer;
+	border: 2px solid var(--color-slate-300);
+	border-radius: var(--radius-sm);
+	background: var(--color-white);
+	transition: all var(--transition-base);
+	appearance: none;
+	position: relative;
+	flex-shrink: 0;
 }
 
+.aio-faq-options-group input[type="checkbox"]:hover {
+	border-color: var(--color-slate-400);
+}
+
+.aio-faq-options-group input[type="checkbox"]:checked {
+	background: var(--color-primary-500);
+	border-color: var(--color-primary-500);
+}
+
+.aio-faq-options-group input[type="checkbox"]:checked::after {
+	content: '✓';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: var(--color-white);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	line-height: 1;
+}
+
+.aio-faq-options-group input[type="checkbox"]:focus {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ============================================
+   Remove Button with X Icon - Absolute Position
+   ============================================ */
+
 .aio-faq-remove-row {
-	display: inline-flex;
+	position: absolute;
+	top: var(--spacing-4);
+	right: var(--spacing-4);
+	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 32px;
-	height: 32px;
+	width: 2rem; /* 32px */
+	height: 2rem; /* 32px */
 	padding: 0;
-	border: none;
-	background: transparent;
+	border: 1px solid var(--color-slate-200);
+	background: var(--color-white);
 	cursor: pointer;
-	transition: all 0.2s ease;
-	border-radius: 4px;
-	color: #dc2626;
+	transition: all var(--transition-base);
+	border-radius: var(--radius-md);
+	color: var(--color-error-600);
 	text-decoration: none;
+	z-index: 10;
+	box-shadow: var(--shadow-sm);
 }
 
 .aio-faq-remove-row:hover {
-	background: #fee2e2;
-	color: #991b1b;
+	background: var(--color-error-50);
+	border-color: var(--color-error-500);
+	color: var(--color-error-700);
+	box-shadow: var(--shadow-md);
+	transform: scale(1.05);
+}
+
+.aio-faq-remove-row:active {
+	transform: scale(0.95);
+}
+
+.aio-faq-remove-row:focus {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
 }
 
 .aio-faq-remove-icon {
-	font-size: 24px;
+	font-size: var(--font-size-lg);
 	line-height: 1;
-	font-weight: 300;
+	font-weight: var(--font-weight-medium);
 	display: block;
 }
 
 /* ============================================
-   Options Checkbox Styling
+   Add Button Styling
    ============================================ */
 
-.aio-faq-options-group p:nth-child(2) label,
-.aio-faq-options-group p:nth-child(4) label,
-.aio-faq-options-group p:nth-child(5) label {
-	flex-direction: row;
-	align-items: center;
-	gap: 8px;
+#aio-faq-group-add-row {
+	background: var(--color-primary-500);
+	color: var(--color-white);
+	border: none;
+	padding: var(--spacing-3) var(--spacing-5);
+	border-radius: var(--radius-md);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-medium);
+	line-height: var(--line-height-normal);
+	cursor: pointer;
+	transition: all var(--transition-base);
+	box-shadow: var(--shadow-sm);
 }
+
+#aio-faq-group-add-row:hover {
+	background: var(--color-primary-600);
+	box-shadow: var(--shadow-md);
+	transform: translateY(-1px);
+}
+
+#aio-faq-group-add-row:active {
+	transform: translateY(0);
+	box-shadow: var(--shadow-sm);
+}
+
+#aio-faq-group-add-row:focus {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
 
 @media (max-width: 960px) {
 	.aio-faq-admin__layout {
 		flex-direction: column;
+		gap: var(--spacing-6);
+	}
+	
+	.aio-faq-content-cell {
+		padding-right: var(--spacing-4);
+		padding-bottom: 3rem; /* Space for remove button on mobile */
+	}
+	
+	.aio-faq-remove-row {
+		top: auto;
+		bottom: var(--spacing-4);
+		right: var(--spacing-4);
 	}
 	
 	.aio-faq-question-field,
 	.aio-faq-answer-field {
-		margin-bottom: 16px;
+		margin-bottom: var(--spacing-5);
+	}
+	
+	.aio-faq-group-table {
+		display: block;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+	
+	.aio-faq-group-table thead {
+		display: none;
+	}
+	
+	.aio-faq-group-table tbody,
+	.aio-faq-group-table tbody tr,
+	.aio-faq-group-table tbody td {
+		display: block;
+		width: 100%;
+	}
+	
+	.aio-faq-group-table tbody tr {
+		margin-bottom: var(--spacing-6);
+		border: 1px solid var(--color-slate-200);
+		border-radius: var(--radius-lg);
+		padding: var(--spacing-4);
+		background: var(--color-white);
+		box-shadow: var(--shadow-sm);
+	}
+	
+	.aio-faq-group-table tbody td {
+		padding: var(--spacing-3) 0;
+		border: none;
+	}
+	
+	.aio-faq-options-cell {
+		background: transparent;
+		padding: var(--spacing-3) 0;
 	}
 }
 
-
+@media (max-width: 640px) {
+	:root {
+		--spacing-8: 1.5rem; /* Reduce gap on mobile */
+	}
+	
+	.aio-faq-admin__layout {
+		gap: var(--spacing-4);
+		margin-top: var(--spacing-4);
+	}
+	
+	.aio-faq-admin__right {
+		padding: var(--spacing-4) var(--spacing-4) var(--spacing-4);
+	}
+	
+	.aio-faq-content-cell {
+		padding: var(--spacing-4) var(--spacing-3) 3rem var(--spacing-3);
+	}
+	
+	.aio-faq-options-group {
+		gap: var(--spacing-3);
+	}
+}

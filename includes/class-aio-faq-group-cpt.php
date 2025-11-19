@@ -124,7 +124,6 @@ class AIO_Faq_Group_CPT {
 					<th style="width:32px;"></th>
 					<th><?php esc_html_e( 'Question & Answer', 'all-in-one-faq' ); ?></th>
 					<th style="width:200px;"><?php esc_html_e( 'Options', 'all-in-one-faq' ); ?></th>
-					<th style="width:50px;"><?php esc_html_e( 'Actions', 'all-in-one-faq' ); ?></th>
 				</tr>
 			</thead>
 			<tbody id="aio-faq-group-questions-body">
@@ -154,6 +153,9 @@ class AIO_Faq_Group_CPT {
 									);
 									?>
 								</div>
+								<button type="button" class="aio-faq-remove-row" aria-label="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>" title="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>">
+									<span class="aio-faq-remove-icon">×</span>
+								</button>
 							</td>
 							<td class="aio-faq-options-cell">
 								<div class="aio-faq-options-group">
@@ -177,18 +179,13 @@ class AIO_Faq_Group_CPT {
 									</p>
 								</div>
 							</td>
-							<td class="aio-faq-actions-cell">
-								<button type="button" class="button-link aio-faq-remove-row" aria-label="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>" title="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>">
-									<span class="aio-faq-remove-icon">×</span>
-								</button>
-							</td>
 						</tr>
 					<?php endforeach; ?>
 				<?php endif; ?>
 			</tbody>
 			<tfoot>
 				<tr>
-					<td colspan="4">
+					<td colspan="3">
 						<button type="button" class="button button-secondary" id="aio-faq-group-add-row">
 							<?php esc_html_e( 'Add Question', 'all-in-one-faq' ); ?>
 						</button>
@@ -210,6 +207,9 @@ class AIO_Faq_Group_CPT {
 						<label class="aio-faq-field-label"><?php esc_html_e( 'Answer', 'all-in-one-faq' ); ?></label>
 						<textarea id="aio-faq-group-answer-{{index}}" name="aio_faq_group_answer[]" rows="4" class="large-text aio-faq-group-answer-editor" placeholder="<?php esc_attr_e( 'Enter your answer...', 'all-in-one-faq' ); ?>"></textarea>
 					</div>
+					<button type="button" class="aio-faq-remove-row" aria-label="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>" title="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>">
+						<span class="aio-faq-remove-icon">×</span>
+					</button>
 				</td>
 				<td class="aio-faq-options-cell">
 					<div class="aio-faq-options-group">
@@ -233,11 +233,6 @@ class AIO_Faq_Group_CPT {
 						</p>
 					</div>
 				</td>
-				<td class="aio-faq-actions-cell">
-					<button type="button" class="button-link aio-faq-remove-row" aria-label="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>" title="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>">
-						<span class="aio-faq-remove-icon">×</span>
-					</button>
-				</td>
 			</tr>
 		</script>
 		<?php
@@ -251,7 +246,7 @@ class AIO_Faq_Group_CPT {
 	 */
 	public static function save_metabox( $post_id, $post ) {
 		if ( ! isset( $_POST['aio_faq_group_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['aio_faq_group_nonce'] ), 'aio_faq_group_save' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			return;
+			return; 
 		}
 
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
