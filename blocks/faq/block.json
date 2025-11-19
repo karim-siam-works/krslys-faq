@@ -1,0 +1,26 @@
+{
+  "apiVersion": 2,
+  "name": "all-in-one-faq/faq",
+  "title": "All-in-One FAQ",
+  "category": "widgets",
+  "icon": "editor-help",
+  "description": "Display a styled FAQ section using the All-in-One FAQ styles.",
+  "keywords": ["faq", "accordion", "help"],
+  "supports": {
+    "html": false
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "default": "Frequently Asked Questions"
+    },
+    "groupId": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "editorScript": "aio-faq-block-editor",
+  "style": "aio-faq-generated"
+}
+
+

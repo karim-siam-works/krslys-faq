@@ -1,0 +1,95 @@
+.aio-faq-admin__layout {
+	display: flex;
+	gap: 32px;
+	margin-top: 20px;
+}
+
+.aio-faq-admin__left {
+	flex: 1 1 55%;
+	min-width: 0;
+}
+
+.aio-faq-admin__right {
+	flex: 1 1 45%;
+	min-width: 0;
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	padding: 16px 20px 20px;
+	box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+}
+
+.aio-faq-admin__right h2 {
+	margin-top: 0;
+}
+
+.aio-faq-admin .form-table th {
+	width: 220px;
+}
+
+.aio-faq-admin .aio-faq {
+	margin-top: 12px;
+}
+
+.aio-faq-questions-table .aio-faq-sort-handle {
+	cursor: move;
+	text-align: center;
+	color: #9ca3af;
+	font-size: 18px;
+}
+
+.aio-faq-questions-table .aio-faq-visible-cell {
+	text-align: center;
+}
+
+.aio-faq-questions-table .aio-faq-actions-cell {
+	text-align: right;
+}
+
+.aio-faq-group-table .aio-faq-sort-handle {
+	vertical-align: top;
+}
+
+.aio-faq-group-table td {
+	vertical-align: top;
+}
+
+.aio-faq-group-table th,
+.aio-faq-group-table td {
+	padding: 8px 10px;
+}
+
+.aio-faq-group-table td:first-child {
+	width: 32px;
+	white-space: nowrap;
+}
+
+.aio-faq-group-table td:nth-child(2),
+.aio-faq-group-table td:nth-child(3) {
+	width: auto;
+}
+
+.aio-faq-group-table input.regular-text,
+.aio-faq-group-table .large-text,
+.aio-faq-group-table .wp-editor-wrap {
+	max-width: 100%;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.aio-faq-group-table .wp-editor-area {
+	width: 100% !important;
+}
+
+.aio-faq-group-table .aio-faq-visible-cell,
+.aio-faq-group-table .aio-faq-actions-cell {
+	white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+	.aio-faq-admin__layout {
+		flex-direction: column;
+	}
+}
+
+
