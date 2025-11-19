@@ -86,9 +86,150 @@
 	white-space: nowrap;
 }
 
+/* ============================================
+   Question & Answer Stacked Layout
+   ============================================ */
+
+.aio-faq-content-cell {
+	vertical-align: top;
+}
+
+.aio-faq-question-field,
+.aio-faq-answer-field {
+	margin-bottom: 20px;
+}
+
+.aio-faq-question-field:last-child,
+.aio-faq-answer-field:last-child {
+	margin-bottom: 0;
+}
+
+.aio-faq-field-label {
+	display: block;
+	font-weight: 600;
+	font-size: 13px;
+	color: #374151;
+	margin-bottom: 8px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	font-size: 11px;
+}
+
+.aio-faq-question-field input[type="text"] {
+	width: 100%;
+	margin-bottom: 0;
+}
+
+.aio-faq-answer-field .wp-editor-wrap {
+	margin-top: 0;
+}
+
+/* ============================================
+   Options Column Styling
+   ============================================ */
+
+.aio-faq-options-cell {
+	vertical-align: top;
+}
+
+.aio-faq-options-group {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.aio-faq-options-group p {
+	margin: 0;
+}
+
+.aio-faq-option-label {
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	color: #64748b;
+	margin-bottom: 6px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.aio-faq-options-group label {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+/* Checkbox labels should be horizontal */
+.aio-faq-options-group p:nth-child(1) label,
+.aio-faq-options-group p:nth-child(2) label,
+.aio-faq-options-group p:nth-child(3) label {
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+}
+
+.aio-faq-options-group p:nth-child(1) label .aio-faq-option-label,
+.aio-faq-options-group p:nth-child(2) label .aio-faq-option-label,
+.aio-faq-options-group p:nth-child(3) label .aio-faq-option-label {
+	display: none;
+}
+
+/* ============================================
+   Remove Button with X Icon
+   ============================================ */
+
+.aio-faq-actions-cell {
+	text-align: center;
+	vertical-align: middle;
+}
+
+.aio-faq-remove-row {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	border-radius: 4px;
+	color: #dc2626;
+	text-decoration: none;
+}
+
+.aio-faq-remove-row:hover {
+	background: #fee2e2;
+	color: #991b1b;
+}
+
+.aio-faq-remove-icon {
+	font-size: 24px;
+	line-height: 1;
+	font-weight: 300;
+	display: block;
+}
+
+/* ============================================
+   Options Checkbox Styling
+   ============================================ */
+
+.aio-faq-options-group p:nth-child(2) label,
+.aio-faq-options-group p:nth-child(4) label,
+.aio-faq-options-group p:nth-child(5) label {
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+}
+
 @media (max-width: 960px) {
 	.aio-faq-admin__layout {
 		flex-direction: column;
+	}
+	
+	.aio-faq-question-field,
+	.aio-faq-answer-field {
+		margin-bottom: 16px;
 	}
 }
 

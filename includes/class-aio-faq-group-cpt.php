@@ -122,12 +122,9 @@ class AIO_Faq_Group_CPT {
 			<thead>
 				<tr>
 					<th style="width:32px;"></th>
-					<th style="width:28%;"><?php esc_html_e( 'Question', 'all-in-one-faq' ); ?></th>
-					<th><?php esc_html_e( 'Answer', 'all-in-one-faq' ); ?></th>
-					<th style="width:120px;"><?php esc_html_e( 'Options', 'all-in-one-faq' ); ?></th>
-					<th style="width:70px;"><?php esc_html_e( 'Visible', 'all-in-one-faq' ); ?></th>
-					<th style="width:70px;"><?php esc_html_e( 'Highlight', 'all-in-one-faq' ); ?></th>
-					<th style="width:70px;"><?php esc_html_e( 'Actions', 'all-in-one-faq' ); ?></th>
+					<th><?php esc_html_e( 'Question & Answer', 'all-in-one-faq' ); ?></th>
+					<th style="width:200px;"><?php esc_html_e( 'Options', 'all-in-one-faq' ); ?></th>
+					<th style="width:50px;"><?php esc_html_e( 'Actions', 'all-in-one-faq' ); ?></th>
 				</tr>
 			</thead>
 			<tbody id="aio-faq-group-questions-body">
@@ -135,59 +132,55 @@ class AIO_Faq_Group_CPT {
 					<?php foreach ( $items as $index => $item ) : ?>
 						<tr class="aio-faq-question-row">
 							<td class="aio-faq-sort-handle">⋮⋮</td>
-							<td>
+							<td class="aio-faq-content-cell">
 								<input type="hidden" name="aio_faq_group_item_id[]" value="<?php echo esc_attr( $item->id ); ?>" />
-								<input type="text" class="regular-text" name="aio_faq_group_question[]" value="<?php echo esc_attr( $item->question ); ?>" placeholder="<?php esc_attr_e( 'Question', 'all-in-one-faq' ); ?>" />
+								<div class="aio-faq-question-field">
+									<label class="aio-faq-field-label"><?php esc_html_e( 'Question', 'all-in-one-faq' ); ?></label>
+									<input type="text" class="regular-text" name="aio_faq_group_question[]" value="<?php echo esc_attr( $item->question ); ?>" placeholder="<?php esc_attr_e( 'Enter your question...', 'all-in-one-faq' ); ?>" />
+								</div>
+								<div class="aio-faq-answer-field">
+									<label class="aio-faq-field-label"><?php esc_html_e( 'Answer', 'all-in-one-faq' ); ?></label>
+									<?php
+									$editor_id = 'aio_faq_group_answer_' . $index;
+									wp_editor(
+										$item->answer,
+										$editor_id,
+										array(
+											'textarea_name' => 'aio_faq_group_answer[]',
+											'media_buttons' => false,
+											'teeny'         => true,
+											'textarea_rows' => 4,
+										)
+									);
+									?>
+								</div>
 							</td>
-							<td>
-								<?php
-								$editor_id = 'aio_faq_group_answer_' . $index;
-								wp_editor(
-									$item->answer,
-									$editor_id,
-									array(
-										'textarea_name' => 'aio_faq_group_answer[]',
-										'media_buttons' => false,
-										'teeny'         => true,
-										'textarea_rows' => 4,
-									)
-								);
-								?>
-							</td>
-							<td>
-								<p>
-									<label>
-										<span class="screen-reader-text"><?php esc_html_e( 'Icon', 'all-in-one-faq' ); ?></span>
-										<input type="text" class="regular-text" name="aio_faq_group_icon[]" value="<?php echo esc_attr( $item->icon ); ?>" placeholder="<?php esc_attr_e( 'Icon class or emoji', 'all-in-one-faq' ); ?>" />
-									</label>
-								</p>
-								<p>
-									<label>
-										<input type="checkbox" name="aio_faq_group_open[<?php echo esc_attr( $index ); ?>]" value="1" <?php checked( (int) $item->initial_state, 1 ); ?> />
-										<?php esc_html_e( 'Open by default', 'all-in-one-faq' ); ?>
-									</label>
-								</p>
-								<p>
-                                    <label>
-										<span class="screen-reader-text"><?php esc_html_e( 'Category/Tag', 'all-in-one-faq' ); ?></span>
-										<input type="text" class="regular-text" name="aio_faq_group_category[]" value="<?php echo esc_attr( $item->category ); ?>" placeholder="<?php esc_attr_e( 'Category/Tag', 'all-in-one-faq' ); ?>" />
-									</label>
-								</p>
-							</td>
-							<td class="aio-faq-visible-cell">
-								<label>
-									<input type="checkbox" name="aio_faq_group_visible[<?php echo esc_attr( $index ); ?>]" value="1" <?php checked( (int) $item->status, 1 ); ?> />
-									<?php esc_html_e( 'Show', 'all-in-one-faq' ); ?>
-								</label>
-							</td>
-							<td class="aio-faq-visible-cell">
-								<label>
-									<input type="checkbox" name="aio_faq_group_highlight[<?php echo esc_attr( $index ); ?>]" value="1" <?php checked( (int) $item->highlight, 1 ); ?> />
-									<?php esc_html_e( 'Highlight', 'all-in-one-faq' ); ?>
-								</label>
+							<td class="aio-faq-options-cell">
+								<div class="aio-faq-options-group">
+									<p>
+										<label>
+											<input type="checkbox" name="aio_faq_group_open[<?php echo esc_attr( $index ); ?>]" value="1" <?php checked( (int) $item->initial_state, 1 ); ?> />
+											<?php esc_html_e( 'Open by default', 'all-in-one-faq' ); ?>
+										</label>
+									</p>
+									<p>
+										<label>
+											<input type="checkbox" name="aio_faq_group_visible[<?php echo esc_attr( $index ); ?>]" value="1" <?php checked( (int) $item->status, 1 ); ?> />
+											<?php esc_html_e( 'Show', 'all-in-one-faq' ); ?>
+										</label>
+									</p>
+									<p>
+										<label>
+											<input type="checkbox" name="aio_faq_group_highlight[<?php echo esc_attr( $index ); ?>]" value="1" <?php checked( (int) $item->highlight, 1 ); ?> />
+											<?php esc_html_e( 'Highlight', 'all-in-one-faq' ); ?>
+										</label>
+									</p>
+								</div>
 							</td>
 							<td class="aio-faq-actions-cell">
-								<button type="button" class="button-link aio-faq-remove-row"><?php esc_html_e( 'Remove', 'all-in-one-faq' ); ?></button>
+								<button type="button" class="button-link aio-faq-remove-row" aria-label="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>" title="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>">
+									<span class="aio-faq-remove-icon">×</span>
+								</button>
 							</td>
 						</tr>
 					<?php endforeach; ?>
@@ -195,7 +188,7 @@ class AIO_Faq_Group_CPT {
 			</tbody>
 			<tfoot>
 				<tr>
-					<td colspan="7">
+					<td colspan="4">
 						<button type="button" class="button button-secondary" id="aio-faq-group-add-row">
 							<?php esc_html_e( 'Add Question', 'all-in-one-faq' ); ?>
 						</button>
@@ -207,47 +200,43 @@ class AIO_Faq_Group_CPT {
 		<script type="text/template" id="tmpl-aio-faq-group-row">
 			<tr class="aio-faq-question-row">
 				<td class="aio-faq-sort-handle">⋮⋮</td>
-				<td>
+				<td class="aio-faq-content-cell">
 					<input type="hidden" name="aio_faq_group_item_id[]" value="" />
-					<input type="text" class="regular-text" name="aio_faq_group_question[]" value="" placeholder="<?php esc_attr_e( 'Question', 'all-in-one-faq' ); ?>" />
+					<div class="aio-faq-question-field">
+						<label class="aio-faq-field-label"><?php esc_html_e( 'Question', 'all-in-one-faq' ); ?></label>
+						<input type="text" class="regular-text" name="aio_faq_group_question[]" value="" placeholder="<?php esc_attr_e( 'Enter your question...', 'all-in-one-faq' ); ?>" />
+					</div>
+					<div class="aio-faq-answer-field">
+						<label class="aio-faq-field-label"><?php esc_html_e( 'Answer', 'all-in-one-faq' ); ?></label>
+						<textarea id="aio-faq-group-answer-{{index}}" name="aio_faq_group_answer[]" rows="4" class="large-text aio-faq-group-answer-editor" placeholder="<?php esc_attr_e( 'Enter your answer...', 'all-in-one-faq' ); ?>"></textarea>
+					</div>
 				</td>
-					<td>
-						<textarea id="aio-faq-group-answer-{{index}}" name="aio_faq_group_answer[]" rows="3" class="large-text aio-faq-group-answer-editor" placeholder="<?php esc_attr_e( 'Answer', 'all-in-one-faq' ); ?>"></textarea>
-					</td>
-				<td>
-					<p>
-						<label>
-							<span class="screen-reader-text"><?php esc_html_e( 'Icon', 'all-in-one-faq' ); ?></span>
-							<input type="text" class="regular-text" name="aio_faq_group_icon[]" value="" placeholder="<?php esc_attr_e( 'Icon class or emoji', 'all-in-one-faq' ); ?>" />
-						</label>
-					</p>
-					<p>
-						<label>
-							<input type="checkbox" name="aio_faq_group_open[{{index}}]" value="1" checked="checked" />
-							<?php esc_html_e( 'Open by default', 'all-in-one-faq' ); ?>
-						</label>
-					</p>
-					<p>
-						<label>
-							<span class="screen-reader-text"><?php esc_html_e( 'Category/Tag', 'all-in-one-faq' ); ?></span>
-							<input type="text" class="regular-text" name="aio_faq_group_category[]" value="" placeholder="<?php esc_attr_e( 'Category/Tag', 'all-in-one-faq' ); ?>" />
-						</label>
-					</p>
-				</td>
-				<td class="aio-faq-visible-cell">
-					<label>
-						<input type="checkbox" name="aio_faq_group_visible[{{index}}]" value="1" checked="checked" />
-						<?php esc_html_e( 'Show', 'all-in-one-faq' ); ?>
-					</label>
-				</td>
-				<td class="aio-faq-visible-cell">
-					<label>
-						<input type="checkbox" name="aio_faq_group_highlight[{{index}}]" value="1" />
-						<?php esc_html_e( 'Highlight', 'all-in-one-faq' ); ?>
-					</label>
+				<td class="aio-faq-options-cell">
+					<div class="aio-faq-options-group">
+						<p>
+							<label>
+								<input type="checkbox" name="aio_faq_group_open[{{index}}]" value="1" checked="checked" />
+								<?php esc_html_e( 'Open by default', 'all-in-one-faq' ); ?>
+							</label>
+						</p>
+						<p>
+							<label>
+								<input type="checkbox" name="aio_faq_group_visible[{{index}}]" value="1" checked="checked" />
+								<?php esc_html_e( 'Show', 'all-in-one-faq' ); ?>
+							</label>
+						</p>
+						<p>
+							<label>
+								<input type="checkbox" name="aio_faq_group_highlight[{{index}}]" value="1" />
+								<?php esc_html_e( 'Highlight', 'all-in-one-faq' ); ?>
+							</label>
+						</p>
+					</div>
 				</td>
 				<td class="aio-faq-actions-cell">
-					<button type="button" class="button-link aio-faq-remove-row"><?php esc_html_e( 'Remove', 'all-in-one-faq' ); ?></button>
+					<button type="button" class="button-link aio-faq-remove-row" aria-label="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>" title="<?php esc_attr_e( 'Remove', 'all-in-one-faq' ); ?>">
+						<span class="aio-faq-remove-icon">×</span>
+					</button>
 				</td>
 			</tr>
 		</script>
