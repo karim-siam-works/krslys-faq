@@ -22,10 +22,13 @@ class NLF_Faq_Frontend {
 		$css_path = NLF_Faq_Style_Generator::get_css_file_path();
 		$css_url  = NLF_Faq_Style_Generator::get_css_file_url();
 
-		if ( $css_url && file_exists( $css_path ) ) {
+		$uploads = wp_upload_dir();
+		$baseurl = isset( $uploads['baseurl'] ) ? trailingslashit( $uploads['baseurl'] ) : '';
+
+		if ( $css_url && $css_path && file_exists( $css_path ) && $baseurl && 0 === strpos( $css_url, $baseurl ) ) {
 			wp_enqueue_style(
 				'nlf-faq-generated',
-				$css_url,
+				esc_url_raw( $css_url ),
 				array(),
 				filemtime( $css_path )
 			);
@@ -49,41 +52,45 @@ class NLF_Faq_Frontend {
 	 * @return string
 	 */
 	public static function render_shortcode( $atts, $content = '' ) {
-		$atts = shortcode_atts(
-			array(
-				'title'      => __( 'Frequently Asked Questions', 'next-level-faq' ),
-				'group'      => '',
-				'group_slug' => '',
-			),
-			$atts,
-			'nlf_faq'
+		$atts = self::sanitize_shortcode_atts(
+			shortcode_atts(
+				array(
+					'title'      => __( 'Frequently Asked Questions', 'next-level-faq' ),
+					'group'      => '',
+					'group_slug' => '',
+				),
+				$atts,
+				'nlf_faq'
+			)
 		);
 
-		$group_id = 0;
+		$group_id = $atts['group'];
 
-		if ( ! empty( $atts['group'] ) ) {
-			$group_id = (int) $atts['group'];
-		} elseif ( ! empty( $atts['group_slug'] ) ) {
-			$group_post = get_page_by_path( sanitize_title( $atts['group_slug'] ), OBJECT, 'nlf_faq_group' );
-			if ( $group_post ) {
+		if ( 0 === $group_id && '' !== $atts['group_slug'] ) {
+			$group_post = get_page_by_path( $atts['group_slug'], OBJECT, 'nlf_faq_group' );
+			if ( $group_post instanceof WP_Post ) {
 				$group_id = (int) $group_post->ID;
 			}
 		}
 
 		$items = NLF_Faq_Repository::get_all_published_faqs( $group_id );
 
+		if ( ! is_array( $items ) ) {
+			$items = array();
+		}
+
 		ob_start();
 		?>
 		<div class="nlf-faq">
-			<?php if ( ! empty( $atts['title'] ) ) : ?>
+			<?php if ( '' !== $atts['title'] ) : ?>
 				<h2 class="nlf-faq__title"><?php echo esc_html( $atts['title'] ); ?></h2>
 			<?php endif; ?>
 
 			<?php if ( ! empty( $items ) ) : ?>
 				<?php foreach ( $items as $index => $item ) : ?>
 					<?php
-					$is_open   = isset( $item->initial_state ) ? (int) $item->initial_state === 1 : ( 0 === $index );
-					$is_active = isset( $item->highlight ) ? (int) $item->highlight === 1 : false;
+					$is_open   = isset( $item->initial_state ) ? ( 1 === (int) $item->initial_state ) : ( 0 === (int) $index );
+					$is_active = isset( $item->highlight ) ? ( 1 === (int) $item->highlight ) : false;
 					$item_class = array();
 
 					if ( $is_open ) {
@@ -95,11 +102,11 @@ class NLF_Faq_Frontend {
 					?>
 					<div class="nlf-faq__item <?php echo esc_attr( implode( ' ', $item_class ) ); ?>">
 						<div class="nlf-faq__question">
-							<span><?php echo esc_html( $item->question ); ?></span>
+							<span><?php echo esc_html( (string) $item->question ); ?></span>
 							<span class="nlf-faq__icon" aria-hidden="true"></span>
 						</div>
 						<div class="nlf-faq__answer">
-							<?php echo wp_kses_post( wpautop( $item->answer ) ); ?>
+							<?php echo wp_kses_post( wpautop( (string) $item->answer ) ); ?>
 						</div>
 					</div>
 				<?php endforeach; ?>
@@ -112,6 +119,21 @@ class NLF_Faq_Frontend {
 		<?php
 
 		return trim( ob_get_clean() );
+	}
+
+	/**
+	 * Sanitize shortcode attributes.
+	 *
+	 * @param array $atts Raw shortcode attributes.
+	 *
+	 * @return array
+	 */
+	private static function sanitize_shortcode_atts( array $atts ) : array {
+		return array(
+			'title'      => sanitize_text_field( $atts['title'] ?? '' ),
+			'group'      => absint( $atts['group'] ?? 0 ),
+			'group_slug' => sanitize_title( $atts['group_slug'] ?? '' ),
+		);
 	}
 }
 
