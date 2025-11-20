@@ -17,7 +17,7 @@ define( 'NLF_FAQ_VERSION', '1.0.0' );
 define( 'NLF_FAQ_PLUGIN_FILE', __FILE__ );
 define( 'NLF_FAQ_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'NLF_FAQ_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'NLF_FAQ_DB_VERSION', '1.2.0' );
+define( 'NLF_FAQ_DB_VERSION', '1.3.0' );
 
 /**
  * Main plugin class.
@@ -73,6 +73,7 @@ final class NLF_Faq_Plugin {
 		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( 'NLF_Faq_Repository', 'maybe_create_table' ) );
 
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+		add_action( 'plugins_loaded', array( 'NLF_Faq_Repository', 'maybe_create_table' ) );
 		add_action( 'init', array( 'NLF_Faq_Group_CPT', 'register' ) );
 		add_action( 'init', array( 'NLF_Faq_Frontend', 'register_shortcodes' ) );
 		add_action( 'wp_enqueue_scripts', array( 'NLF_Faq_Frontend', 'enqueue_styles' ) );

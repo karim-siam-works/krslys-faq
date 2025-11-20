@@ -82,9 +82,8 @@ class NLF_Faq_Frontend {
 			<?php if ( ! empty( $items ) ) : ?>
 				<?php foreach ( $items as $index => $item ) : ?>
 					<?php
-					$is_open    = isset( $item->initial_state ) ? (int) $item->initial_state === 1 : ( 0 === $index );
-					$is_active  = isset( $item->highlight ) ? (int) $item->highlight === 1 : false;
-					$category   = ! empty( $item->category ) ? sanitize_title( $item->category ) : '';
+					$is_open   = isset( $item->initial_state ) ? (int) $item->initial_state === 1 : ( 0 === $index );
+					$is_active = isset( $item->highlight ) ? (int) $item->highlight === 1 : false;
 					$item_class = array();
 
 					if ( $is_open ) {
@@ -93,18 +92,11 @@ class NLF_Faq_Frontend {
 					if ( $is_active ) {
 						$item_class[] = 'nlf-faq__item--highlight';
 					}
-					if ( $category ) {
-						$item_class[] = 'nlf-faq__item--category-' . $category;
-					}
 					?>
 					<div class="nlf-faq__item <?php echo esc_attr( implode( ' ', $item_class ) ); ?>">
 						<div class="nlf-faq__question">
 							<span><?php echo esc_html( $item->question ); ?></span>
-							<span class="nlf-faq__icon" aria-hidden="true">
-								<?php if ( ! empty( $item->icon ) ) : ?>
-									<?php echo esc_html( $item->icon ); ?>
-								<?php endif; ?>
-							</span>
+							<span class="nlf-faq__icon" aria-hidden="true"></span>
 						</div>
 						<div class="nlf-faq__answer">
 							<?php echo wp_kses_post( wpautop( $item->answer ) ); ?>

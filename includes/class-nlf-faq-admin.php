@@ -737,9 +737,7 @@ class NLF_Faq_Admin {
 				$group_id      = isset( $item['group_id'] ) ? (int) $item['group_id'] : 0;
 				$position      = isset( $item['position'] ) ? (int) $item['position'] : (int) $index;
 				$status        = isset( $item['status'] ) ? (int) $item['status'] : 0;
-				$icon          = isset( $item['icon'] ) ? (string) $item['icon'] : '';
 				$initial_state = isset( $item['initial_state'] ) ? (int) $item['initial_state'] : 0;
-				$category      = isset( $item['category'] ) ? (string) $item['category'] : '';
 				$highlight     = isset( $item['highlight'] ) ? (int) $item['highlight'] : 0;
 
 				NLF_Faq_Repository::save_item(
@@ -749,9 +747,7 @@ class NLF_Faq_Admin {
 					$answer,
 					$status,
 					$position,
-					$icon,
 					$initial_state,
-					$category,
 					$highlight
 				);
 
@@ -989,6 +985,8 @@ class NLF_Faq_Admin {
 
 			$grouped[ $key ][] = $item;
 		}
+
+		ksort( $grouped, SORT_NUMERIC );
 
 		return $grouped;
 	}

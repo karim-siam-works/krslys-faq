@@ -44,9 +44,7 @@ class NLF_Faq_Repository {
 			question TEXT NOT NULL,
 			answer LONGTEXT NOT NULL,
 			status TINYINT(1) NOT NULL DEFAULT 0,
-			icon VARCHAR(100) NOT NULL DEFAULT '',
 			initial_state TINYINT(1) NOT NULL DEFAULT 0,
-			category VARCHAR(190) NOT NULL DEFAULT '',
 			highlight TINYINT(1) NOT NULL DEFAULT 0,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -56,6 +54,7 @@ class NLF_Faq_Repository {
 		) {$charset_collate};";
 
 		dbDelta( $sql );
+		self::maybe_drop_legacy_columns( $table_name );
 
 		update_option( 'nlf_faq_db_version', NLF_FAQ_DB_VERSION );
 	}
@@ -101,7 +100,7 @@ class NLF_Faq_Repository {
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$rows = $wpdb->get_results(
-			"SELECT group_id, position, question, answer, status, icon, initial_state, category, highlight
+			"SELECT group_id, position, question, answer, status, initial_state, highlight
 			FROM {$table} {$where_sql}
 			ORDER BY group_id ASC, position ASC, id ASC",
 			ARRAY_A
@@ -119,9 +118,7 @@ class NLF_Faq_Repository {
 					'question'      => isset( $row['question'] ) ? (string) $row['question'] : '',
 					'answer'        => isset( $row['answer'] ) ? (string) $row['answer'] : '',
 					'status'        => isset( $row['status'] ) ? (int) $row['status'] : 0,
-					'icon'          => isset( $row['icon'] ) ? (string) $row['icon'] : '',
 					'initial_state' => isset( $row['initial_state'] ) ? (int) $row['initial_state'] : 0,
-					'category'      => isset( $row['category'] ) ? (string) $row['category'] : '',
 					'highlight'     => isset( $row['highlight'] ) ? (int) $row['highlight'] : 0,
 				);
 			},
@@ -235,14 +232,12 @@ class NLF_Faq_Repository {
 	 * @param string $answer        Answer HTML.
 	 * @param int    $status        Status flag (1 = visible, 0 = hidden).
 	 * @param int    $position      Item order position.
-	 * @param string $icon          Icon identifier.
 	 * @param int    $initial_state 1 = open by default, 0 = closed.
-	 * @param string $category      Category/tag label.
 	 * @param int    $highlight     1 = highlighted, 0 = normal.
 	 *
 	 * @return int Inserted/updated ID.
 	 */
-	public static function save_item( $id, $group_id, $question, $answer, $status, $position, $icon = '', $initial_state = 0, $category = '', $highlight = 0 ) {
+	public static function save_item( $id, $group_id, $question, $answer, $status, $position, $initial_state = 0, $highlight = 0 ) {
 		global $wpdb;
 
 		$table = self::get_table_name();
@@ -254,13 +249,11 @@ class NLF_Faq_Repository {
 			'question'      => wp_kses_post( $question ),
 			'answer'        => wp_kses_post( $answer ),
 			'status'        => (int) $status,
-			'icon'          => sanitize_text_field( $icon ),
 			'initial_state' => (int) $initial_state,
-			'category'      => sanitize_text_field( $category ),
 			'highlight'     => (int) $highlight,
 		);
 
-		$format = array( '%d', '%d', '%d', '%s', '%s', '%d', '%s', '%d', '%s', '%d' );
+		$format = array( '%d', '%d', '%d', '%s', '%s', '%d', '%d', '%d' );
 
 		if ( $id > 0 ) {
 			$wpdb->update(
@@ -372,6 +365,34 @@ class NLF_Faq_Repository {
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$wpdb->query( "DELETE FROM {$table}" );
+	}
+
+	/**
+	 * Drop icon/category columns if they still exist.
+	 *
+	 * @param string $table Table name.
+	 * @return void
+	 */
+	private static function maybe_drop_legacy_columns( $table ) {
+		global $wpdb;
+
+		$columns = $wpdb->get_results( "SHOW COLUMNS FROM {$table}", ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( empty( $columns ) ) {
+			return;
+		}
+
+		$existing = wp_list_pluck( $columns, 'Field' );
+		$drop_map = array(
+			'icon',
+			'category',
+		);
+
+		foreach ( $drop_map as $column ) {
+			if ( in_array( $column, $existing, true ) ) {
+				$wpdb->query( "ALTER TABLE {$table} DROP COLUMN {$column}" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			}
+		}
 	}
 }
 

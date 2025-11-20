@@ -117,7 +117,7 @@ class NLF_Faq_Group_CPT {
 		$items = NLF_Faq_Repository::get_items_for_group( $post->ID, false );
 		?>
 		<p class="description">
-			<?php esc_html_e( 'Add multiple questions and answers to this FAQ group. You can control visibility, icons, initial open state, category tags, and highlight important items.', 'next-level-faq' ); ?>
+			<?php esc_html_e( 'Add multiple questions and answers to this FAQ group. Control visibility, default open state, and highlight notable items.', 'next-level-faq' ); ?>
 		</p>
 
 		<table class="widefat fixed striped nlf-faq-questions-table nlf-faq-group-table">
@@ -266,8 +266,6 @@ class NLF_Faq_Group_CPT {
 		$ids       = isset( $_POST['nlf_faq_group_item_id'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_item_id'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$questions = isset( $_POST['nlf_faq_group_question'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_question'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$answers   = isset( $_POST['nlf_faq_group_answer'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_answer'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$icons     = isset( $_POST['nlf_faq_group_icon'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_icon'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$categories = isset( $_POST['nlf_faq_group_category'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_category'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$visible   = isset( $_POST['nlf_faq_group_visible'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_visible'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$open      = isset( $_POST['nlf_faq_group_open'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_open'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$highlight = isset( $_POST['nlf_faq_group_highlight'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_highlight'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -285,13 +283,11 @@ class NLF_Faq_Group_CPT {
 				continue;
 			}
 
-			$icon          = isset( $icons[ $i ] ) ? sanitize_text_field( $icons[ $i ] ) : '';
-			$category      = isset( $categories[ $i ] ) ? sanitize_text_field( $categories[ $i ] ) : '';
 			$status        = isset( $visible[ (string) $i ] ) ? 1 : 0;
 			$initial_state = isset( $open[ (string) $i ] ) ? 1 : 0;
 			$is_highlight  = isset( $highlight[ (string) $i ] ) ? 1 : 0;
 
-			$new_id     = NLF_Faq_Repository::save_item( $id, $post_id, $question, $answer, $status, $i, $icon, $initial_state, $category, $is_highlight );
+			$new_id     = NLF_Faq_Repository::save_item( $id, $post_id, $question, $answer, $status, $i, $initial_state, $is_highlight );
 			$keep_ids[] = $new_id;
 		}
 
