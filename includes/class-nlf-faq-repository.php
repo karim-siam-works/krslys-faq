@@ -5,11 +5,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Data access layer for FAQ items stored in a custom table.
+ *
+ * SECURITY: All database operations use $wpdb->prepare() for dynamic values.
+ * Table and column names are escaped using esc_sql() where needed.
  */
 class NLF_Faq_Repository {
 
 	/**
 	 * Get table name.
+	 *
+	 * SECURITY: Returns sanitized table name with proper prefix.
 	 *
 	 * @return string
 	 */
@@ -21,6 +26,8 @@ class NLF_Faq_Repository {
 
 	/**
 	 * Maybe create or upgrade the custom table.
+	 *
+	 * SECURITY: Uses dbDelta() which is WordPress's safe schema management function.
 	 */
 	public static function maybe_create_table() {
 		$installed_version = get_option( 'nlf_faq_db_version' );
@@ -64,6 +71,8 @@ class NLF_Faq_Repository {
 	 *
 	 * Group ID 0 is used for the legacy global questions UI.
 	 *
+	 * SECURITY: Uses $wpdb->prepare() for group_id parameter.
+	 *
 	 * @param int $group_id Group ID.
 	 * @return array
 	 */
@@ -77,12 +86,14 @@ class NLF_Faq_Repository {
 			(int) $group_id
 		);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safe, query is prepared.
 		return $wpdb->get_results( $sql );
 	}
 
 	/**
 	 * Retrieve FAQ records for export routines.
+	 *
+	 * SECURITY: Uses $wpdb->prepare() for optional group_id filter.
 	 *
 	 * @param int|null $group_id Optional group filter (null = all groups).
 	 * @return array[]
@@ -98,7 +109,7 @@ class NLF_Faq_Repository {
 			$where_sql = $wpdb->prepare( 'WHERE group_id = %d', (int) $group_id );
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, WHERE clause prepared above.
 		$rows = $wpdb->get_results(
 			"SELECT group_id, position, question, answer, status, initial_state, highlight
 			FROM {$table} {$where_sql}
@@ -129,6 +140,8 @@ class NLF_Faq_Repository {
 	/**
 	 * Get FAQ item by post ID.
 	 *
+	 * SECURITY: Uses $wpdb->prepare() for post_id parameter.
+	 *
 	 * @param int $post_id Post ID.
 	 * @return object|null
 	 */
@@ -137,12 +150,16 @@ class NLF_Faq_Repository {
 
 		$table = self::get_table_name();
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE post_id = %d LIMIT 1", $post_id ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
+		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE post_id = %d LIMIT 1", (int) $post_id ) );
 	}
 
 	/**
 	 * Save or update FAQ item.
+	 *
+	 * SECURITY:
+	 * - All data sanitized via wp_kses_post() and type casting.
+	 * - Uses $wpdb->insert() and $wpdb->update() with format arrays.
 	 *
 	 * @param int    $post_id  Post ID.
 	 * @param string $question Question text.
@@ -187,6 +204,8 @@ class NLF_Faq_Repository {
 	/**
 	 * Delete FAQ item by post ID.
 	 *
+	 * SECURITY: Uses $wpdb->delete() with proper format specifier.
+	 *
 	 * @param int $post_id Post ID.
 	 */
 	public static function delete_by_post_id( $post_id ) {
@@ -206,6 +225,8 @@ class NLF_Faq_Repository {
 	 *
 	 * Group ID 0 is used for the legacy global questions UI.
 	 *
+	 * SECURITY: Uses $wpdb->prepare() for parameters.
+	 *
 	 * @param int $group_id Group ID.
 	 * @return array
 	 */
@@ -219,12 +240,16 @@ class NLF_Faq_Repository {
 			(int) $group_id
 		);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safe, query is prepared.
 		return $wpdb->get_results( $sql );
 	}
 
 	/**
 	 * Save or update an item by ID (used by repeater UIs).
+	 *
+	 * SECURITY:
+	 * - All inputs type-cast and sanitized.
+	 * - Uses $wpdb->insert() / $wpdb->update() with format arrays.
 	 *
 	 * @param int    $id            Existing item ID, or 0 for insert.
 	 * @param int    $group_id      Group ID (0 for global / legacy).
@@ -275,6 +300,11 @@ class NLF_Faq_Repository {
 	/**
 	 * Delete all items except the specified IDs.
 	 *
+	 * SECURITY:
+	 * - All IDs sanitized via array_map with intval.
+	 * - Placeholders used for IN clause.
+	 * - Uses $wpdb->prepare() with dynamic placeholder count.
+	 *
 	 * @param int[] $keep_ids IDs to keep.
 	 * @param int   $group_id Group ID scope.
 	 */
@@ -292,18 +322,20 @@ class NLF_Faq_Repository {
 
 		if ( empty( $keep_ids ) ) {
 			// Delete everything for this group.
+			// SECURITY: Uses $wpdb->prepare() for group_id.
 			$wpdb->query(
 				$wpdb->prepare(
-					"DELETE FROM {$table} WHERE group_id = %d",
+					"DELETE FROM {$table} WHERE group_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
 					(int) $group_id
 				)
-			); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			);
 			return;
 		}
 
+		// SECURITY: Create placeholders for each ID, then use prepare().
 		$placeholders = implode( ',', array_fill( 0, count( $keep_ids ), '%d' ) );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, placeholders are safe.
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$table} WHERE group_id = %d AND id NOT IN ({$placeholders})",
@@ -315,6 +347,8 @@ class NLF_Faq_Repository {
 	/**
 	 * Get items for a specific group.
 	 *
+	 * SECURITY: Uses $wpdb->prepare() for parameters.
+	 *
 	 * @param int  $group_id     Group ID.
 	 * @param bool $only_visible Whether to include only visible items.
 	 *
@@ -325,19 +359,23 @@ class NLF_Faq_Repository {
 
 		$table = self::get_table_name();
 
+		// SECURITY: Visible clause is static SQL, not user input.
 		$visible_clause = $only_visible ? 'AND status = 1' : '';
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and visible_clause are safe.
 		$sql = $wpdb->prepare(
 			"SELECT * FROM {$table} WHERE group_id = %d {$visible_clause} ORDER BY position ASC, created_at ASC",
 			(int) $group_id
 		);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is prepared above.
 		return $wpdb->get_results( $sql );
 	}
 
 	/**
 	 * Delete all items for a specific group.
+	 *
+	 * SECURITY: Uses $wpdb->delete() with format specifier.
 	 *
 	 * @param int $group_id Group ID.
 	 */
@@ -356,6 +394,9 @@ class NLF_Faq_Repository {
 	/**
 	 * Delete every FAQ record.
 	 *
+	 * SECURITY: Uses TRUNCATE which is safe for complete table clearing.
+	 * Note: TRUNCATE cannot be prepared, but it has no user input.
+	 *
 	 * @return void
 	 */
 	public static function delete_all_items() {
@@ -363,12 +404,18 @@ class NLF_Faq_Repository {
 
 		$table = self::get_table_name();
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$wpdb->query( "DELETE FROM {$table}" );
+		// SECURITY: TRUNCATE is safe here as table name is from get_table_name() which uses $wpdb->prefix.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input.
+		$wpdb->query( "TRUNCATE TABLE {$table}" );
 	}
 
 	/**
 	 * Drop icon/category columns if they still exist.
+	 *
+	 * SECURITY:
+	 * - Table name from trusted source ($wpdb->prefix).
+	 * - Column names validated against allowlist before dropping.
+	 * - Uses esc_sql() for column names in ALTER statement.
 	 *
 	 * @param string $table Table name.
 	 * @return void
@@ -376,24 +423,30 @@ class NLF_Faq_Repository {
 	private static function maybe_drop_legacy_columns( $table ) {
 		global $wpdb;
 
-		$columns = $wpdb->get_results( "SHOW COLUMNS FROM {$table}", ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// SECURITY: SHOW COLUMNS is safe as table name is from get_table_name().
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
+		$columns = $wpdb->get_results( "SHOW COLUMNS FROM {$table}", ARRAY_A );
 
 		if ( empty( $columns ) ) {
 			return;
 		}
 
 		$existing = wp_list_pluck( $columns, 'Field' );
-		$drop_map = array(
+
+		// SECURITY: Allowlist of columns that can be dropped.
+		$drop_allowlist = array(
 			'icon',
 			'category',
 		);
 
-		foreach ( $drop_map as $column ) {
+		foreach ( $drop_allowlist as $column ) {
+			// SECURITY: Only drop if column name is in allowlist and exists.
 			if ( in_array( $column, $existing, true ) ) {
-				$wpdb->query( "ALTER TABLE {$table} DROP COLUMN {$column}" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				// SECURITY: Escape column name using esc_sql() for identifier safety.
+				$safe_column = esc_sql( $column );
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and column names are safe.
+				$wpdb->query( "ALTER TABLE {$table} DROP COLUMN {$safe_column}" );
 			}
 		}
 	}
 }
-
-

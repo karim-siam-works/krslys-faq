@@ -8,6 +8,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Each post represents a group/section that will hold a repeater
  * of FAQ items stored in the custom nlf_faq_items table.
+ *
+ * SECURITY FEATURES:
+ * - All metabox saves protected with nonce verification.
+ * - Capability checks for edit_post permission.
+ * - Input sanitization via sanitize_text_field() and wp_kses_post().
+ * - Output escaping via esc_attr(), esc_html().
  */
 class NLF_Faq_Group_CPT {
 
@@ -72,15 +78,19 @@ class NLF_Faq_Group_CPT {
 	/**
 	 * Enqueue admin assets for group editor.
 	 *
+	 * SECURITY: Validates screen object and post type.
+	 *
 	 * @param string $hook_suffix Hook suffix.
 	 */
 	public static function enqueue_admin_assets( $hook_suffix ) {
+		// SECURITY: Only load on post editor screens.
 		if ( ! in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) ) {
 			return;
 		}
 
 		$screen = get_current_screen();
 
+		// SECURITY: Verify we're on the correct post type.
 		if ( ! $screen || self::POST_TYPE !== $screen->post_type ) {
 			return;
 		}
@@ -109,9 +119,12 @@ class NLF_Faq_Group_CPT {
 	/**
 	 * Render FAQ items repeater metabox.
 	 *
+	 * SECURITY: All output properly escaped.
+	 *
 	 * @param WP_Post $post Post object.
 	 */
 	public static function render_metabox( $post ) {
+		// SECURITY: Add nonce field for CSRF protection.
 		wp_nonce_field( 'nlf_faq_group_save', 'nlf_faq_group_nonce' );
 
 		$items = NLF_Faq_Repository::get_items_for_group( $post->ID, false );
@@ -243,32 +256,43 @@ class NLF_Faq_Group_CPT {
 	/**
 	 * Save metabox data for a group.
 	 *
+	 * SECURITY:
+	 * - Nonce verification via wp_verify_nonce().
+	 * - Capability check via current_user_can('edit_post').
+	 * - Autosave and post type validation.
+	 * - Input sanitization via sanitize_text_field() and wp_kses_post().
+	 *
 	 * @param int     $post_id Post ID.
 	 * @param WP_Post $post    Post object.
 	 */
 	public static function save_metabox( $post_id, $post ) {
-		if ( ! isset( $_POST['nlf_faq_group_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nlf_faq_group_nonce'] ), 'nlf_faq_group_save' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		// SECURITY: Verify nonce for CSRF protection.
+		if ( ! isset( $_POST['nlf_faq_group_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nlf_faq_group_nonce'] ) ), 'nlf_faq_group_save' ) ) {
 			return; 
 		}
 
+		// SECURITY: Don't save during autosave.
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}
 
+		// SECURITY: Verify post type.
 		if ( self::POST_TYPE !== $post->post_type ) {
 			return;
 		}
 
+		// SECURITY: Check user capability.
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
 
-		$ids       = isset( $_POST['nlf_faq_group_item_id'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_item_id'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$questions = isset( $_POST['nlf_faq_group_question'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_question'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$answers   = isset( $_POST['nlf_faq_group_answer'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_answer'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$visible   = isset( $_POST['nlf_faq_group_visible'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_visible'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$open      = isset( $_POST['nlf_faq_group_open'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_open'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$highlight = isset( $_POST['nlf_faq_group_highlight'] ) ? (array) wp_unslash( $_POST['nlf_faq_group_highlight'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		// SECURITY: Sanitize all POST data before processing.
+		$ids       = isset( $_POST['nlf_faq_group_item_id'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_group_item_id'] ) ) : array();
+		$questions = isset( $_POST['nlf_faq_group_question'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_group_question'] ) ) : array();
+		$answers   = isset( $_POST['nlf_faq_group_answer'] ) ? array_map( 'wp_kses_post', wp_unslash( (array) $_POST['nlf_faq_group_answer'] ) ) : array();
+		$visible   = isset( $_POST['nlf_faq_group_visible'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_group_visible'] ) ) : array();
+		$open      = isset( $_POST['nlf_faq_group_open'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_group_open'] ) ) : array();
+		$highlight = isset( $_POST['nlf_faq_group_highlight'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_group_highlight'] ) ) : array();
 
 		$keep_ids = array();
 
@@ -276,9 +300,10 @@ class NLF_Faq_Group_CPT {
 
 		for ( $i = 0; $i < $count; $i++ ) {
 			$id       = isset( $ids[ $i ] ) ? (int) $ids[ $i ] : 0;
-			$question = isset( $questions[ $i ] ) ? sanitize_text_field( $questions[ $i ] ) : '';
-			$answer   = isset( $answers[ $i ] ) ? wp_kses_post( $answers[ $i ] ) : '';
+			$question = isset( $questions[ $i ] ) ? $questions[ $i ] : '';
+			$answer   = isset( $answers[ $i ] ) ? $answers[ $i ] : '';
 
+			// Skip empty entries.
 			if ( '' === trim( $question ) && '' === trim( wp_strip_all_tags( $answer ) ) ) {
 				continue;
 			}
@@ -291,17 +316,21 @@ class NLF_Faq_Group_CPT {
 			$keep_ids[] = $new_id;
 		}
 
+		// Delete items not in the keep list.
 		NLF_Faq_Repository::delete_all_except( $keep_ids, $post_id );
 	}
 
 	/**
 	 * Handle deletion of a group.
 	 *
+	 * SECURITY: Validates post type before deletion.
+	 *
 	 * @param int $post_id Post ID.
 	 */
 	public static function handle_delete( $post_id ) {
 		$post = get_post( $post_id );
 
+		// SECURITY: Verify post type before deleting related data.
 		if ( ! $post || self::POST_TYPE !== $post->post_type ) {
 			return;
 		}
@@ -309,5 +338,3 @@ class NLF_Faq_Group_CPT {
 		NLF_Faq_Repository::delete_items_for_group( $post_id );
 	}
 }
-
-

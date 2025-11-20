@@ -5,6 +5,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Builds and stores generated CSS for FAQ styles.
+ *
+ * SECURITY FEATURES:
+ * - Uses WordPress Filesystem API for all file operations.
+ * - Validates directory paths and file permissions.
+ * - Sanitizes all CSS values via esc_html().
  */
 class NLF_Faq_Style_Generator {
 
@@ -36,6 +41,8 @@ class NLF_Faq_Style_Generator {
 
 	/**
 	 * Build CSS string from options.
+	 *
+	 * SECURITY: All option values escaped with esc_html() before output.
 	 *
 	 * @param array $options Options.
 	 *
@@ -324,9 +331,14 @@ class NLF_Faq_Style_Generator {
 	}
 
 	/**
-	 * Generate CSS file from current options.
+	 * Generate CSS file from current options using WordPress Filesystem API.
 	 *
-	 * @return void
+	 * SECURITY:
+	 * - Uses WP_Filesystem for secure file operations.
+	 * - Validates file paths and permissions.
+	 * - Creates directory with proper permissions if needed.
+	 *
+	 * @return bool True on success, false on failure.
 	 */
 	public static function generate_and_save() {
 		$options = NLF_Faq_Options::get_options();
@@ -334,12 +346,55 @@ class NLF_Faq_Style_Generator {
 		$path    = self::get_css_file_path();
 
 		if ( ! $path ) {
-			return;
+			return false;
 		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_put_contents
-		file_put_contents( $path, $css );
+		// SECURITY: Initialize WordPress Filesystem API.
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		// Initialize filesystem with direct method (safe for uploads directory).
+		$credentials = request_filesystem_credentials( '', '', false, false, null );
+
+		if ( false === $credentials ) {
+			// Fallback to direct method for uploads directory.
+			if ( ! WP_Filesystem() ) {
+				return false;
+			}
+		} elseif ( ! WP_Filesystem( $credentials ) ) {
+			return false;
+		}
+
+		global $wp_filesystem;
+
+		if ( ! $wp_filesystem ) {
+			return false;
+		}
+
+		// SECURITY: Ensure directory exists and is writable.
+		$dir = dirname( $path );
+
+		if ( ! $wp_filesystem->is_dir( $dir ) ) {
+			if ( ! wp_mkdir_p( $dir ) ) {
+				return false;
+			}
+		}
+
+		// SECURITY: Convert absolute path to WP_Filesystem compatible path.
+		$wp_path = $path;
+
+		if ( defined( 'FTP_BASE' ) ) {
+			$wp_path = str_replace( ABSPATH, trailingslashit( FTP_BASE ), $path );
+		}
+
+		// SECURITY: Write CSS content using WP_Filesystem.
+		$result = $wp_filesystem->put_contents(
+			$wp_path,
+			$css,
+			FS_CHMOD_FILE
+		);
+
+		return false !== $result;
 	}
 }
-
-

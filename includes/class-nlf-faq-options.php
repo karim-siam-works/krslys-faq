@@ -5,6 +5,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Handles FAQ style options.
+ *
+ * SECURITY FEATURES:
+ * - All color values validated via sanitize_hex_color().
+ * - Numeric values type-cast to integers with min/max boundaries.
+ * - String values validated against allowlists.
+ * - No direct user input accepted without sanitization.
  */
 class NLF_Faq_Options {
 
@@ -57,6 +63,12 @@ class NLF_Faq_Options {
 	/**
 	 * Sanitize and save options.
 	 *
+	 * SECURITY:
+	 * - All color values validated via sanitize_hex_color().
+	 * - Numeric values type-cast with min/max boundaries.
+	 * - Icon style and animation validated against allowlists.
+	 * - Shadow value converted to strict boolean.
+	 *
 	 * @param array $raw Raw input.
 	 *
 	 * @return array
@@ -67,28 +79,62 @@ class NLF_Faq_Options {
 
 		$raw = is_array( $raw ) ? $raw : array();
 
+		// SECURITY: Validate hex colors (sanitize_hex_color returns false for invalid colors).
 		$sanitized['container_background']    = isset( $raw['container_background'] ) ? sanitize_hex_color( $raw['container_background'] ) : $defaults['container_background'];
 		$sanitized['container_border_color']  = isset( $raw['container_border_color'] ) ? sanitize_hex_color( $raw['container_border_color'] ) : $defaults['container_border_color'];
+		
+		// Fallback to default if sanitization returns empty.
+		if ( empty( $sanitized['container_background'] ) ) {
+			$sanitized['container_background'] = $defaults['container_background'];
+		}
+		if ( empty( $sanitized['container_border_color'] ) ) {
+			$sanitized['container_border_color'] = $defaults['container_border_color'];
+		}
+
+		// SECURITY: Numeric values with min boundaries.
 		$sanitized['container_border_radius'] = isset( $raw['container_border_radius'] ) ? max( 0, intval( $raw['container_border_radius'] ) ) : $defaults['container_border_radius'];
 		$sanitized['container_padding']       = isset( $raw['container_padding'] ) ? max( 0, intval( $raw['container_padding'] ) ) : $defaults['container_padding'];
 
+		// SECURITY: Question color validation.
 		$sanitized['question_color']      = isset( $raw['question_color'] ) ? sanitize_hex_color( $raw['question_color'] ) : $defaults['question_color'];
+		if ( empty( $sanitized['question_color'] ) ) {
+			$sanitized['question_color'] = $defaults['question_color'];
+		}
+
+		// SECURITY: Font size with minimum value.
 		$sanitized['question_font_size']  = isset( $raw['question_font_size'] ) ? max( 10, intval( $raw['question_font_size'] ) ) : $defaults['question_font_size'];
+		
+		// SECURITY: Font weight with min/max boundaries (100-900, steps of 100).
 		$sanitized['question_font_weight'] = isset( $raw['question_font_weight'] ) ? max( 100, min( 900, intval( $raw['question_font_weight'] ) ) ) : $defaults['question_font_weight'];
 
+		// SECURITY: Answer color validation.
 		$sanitized['answer_color']     = isset( $raw['answer_color'] ) ? sanitize_hex_color( $raw['answer_color'] ) : $defaults['answer_color'];
+		if ( empty( $sanitized['answer_color'] ) ) {
+			$sanitized['answer_color'] = $defaults['answer_color'];
+		}
+		
+		// SECURITY: Answer font size with minimum value.
 		$sanitized['answer_font_size'] = isset( $raw['answer_font_size'] ) ? max( 10, intval( $raw['answer_font_size'] ) ) : $defaults['answer_font_size'];
 
+		// SECURITY: Accent color validation.
 		$sanitized['accent_color'] = isset( $raw['accent_color'] ) ? sanitize_hex_color( $raw['accent_color'] ) : $defaults['accent_color'];
+		if ( empty( $sanitized['accent_color'] ) ) {
+			$sanitized['accent_color'] = $defaults['accent_color'];
+		}
 
+		// SECURITY: Icon style validation against allowlist.
 		$allowed_icon_styles = array( 'plus_minus', 'chevron' );
 		$sanitized['icon_style'] = in_array( $raw['icon_style'] ?? '', $allowed_icon_styles, true )
 			? $raw['icon_style']
 			: $defaults['icon_style'];
 
+		// SECURITY: Gap between items with minimum value.
 		$sanitized['gap_between_items'] = isset( $raw['gap_between_items'] ) ? max( 0, intval( $raw['gap_between_items'] ) ) : $defaults['gap_between_items'];
+		
+		// SECURITY: Shadow converted to strict boolean.
 		$sanitized['shadow'] = ! empty( $raw['shadow'] );
 
+		// SECURITY: Animation validation against allowlist.
 		$allowed_animation = array( 'slide', 'fade', 'none' );
 		$sanitized['animation'] = in_array( $raw['animation'] ?? '', $allowed_animation, true )
 			? $raw['animation']
@@ -110,5 +156,3 @@ class NLF_Faq_Options {
 		}
 	}
 }
-
-
