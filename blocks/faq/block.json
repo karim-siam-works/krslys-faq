@@ -7,7 +7,9 @@
   "description": "Display a styled FAQ section using the All-in-One FAQ styles.",
   "keywords": ["faq", "accordion", "help"],
   "supports": {
-    "html": false
+    "html": false,
+    "align": true,
+    "anchor": true
   },
   "attributes": {
     "title": {
