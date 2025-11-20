@@ -23,8 +23,8 @@
 
 			// Find question wrapper.
 			while (target && target !== container) {
-				if (target.classList && target.classList.contains('aio-faq__question')) {
-					var item = target.closest('.aio-faq__item');
+				if (target.classList && target.classList.contains('nlf-faq__question')) {
+					var item = target.closest('.nlf-faq__item');
 					toggleItem(item);
 					break;
 				}
@@ -34,7 +34,7 @@
 	}
 
 	document.addEventListener('DOMContentLoaded', function () {
-		var containers = document.querySelectorAll('.aio-faq');
+		var containers = document.querySelectorAll('.nlf-faq');
 		for (var i = 0; i < containers.length; i++) {
 			bindFaq(containers[i]);
 		}

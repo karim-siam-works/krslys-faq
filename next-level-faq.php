@@ -1,0 +1,185 @@
+<?php
+/**
+ * Plugin Name: Next Level FAQ
+ * Description: Flexible FAQ plugin with customizable styling and live preview.
+ * Version: 1.0.0
+ * Author: Your Name
+ * Text Domain: next-level-faq
+ * Domain Path: /languages
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+// Plugin constants.
+define( 'NLF_FAQ_VERSION', '1.0.0' );
+define( 'NLF_FAQ_PLUGIN_FILE', __FILE__ );
+define( 'NLF_FAQ_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'NLF_FAQ_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'NLF_FAQ_DB_VERSION', '1.2.0' );
+
+/**
+ * Main plugin class.
+ */
+final class NLF_Faq_Plugin {
+
+	/**
+	 * Singleton instance.
+	 *
+	 * @var NLF_Faq_Plugin|null
+	 */
+	private static $instance = null;
+
+	/**
+	 * Get singleton instance.
+	 *
+	 * @return NLF_Faq_Plugin
+	 */
+	public static function instance() {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
+
+	/**
+	 * Constructor.
+	 */
+	private function __construct() {
+		$this->includes();
+		$this->hooks();
+	}
+
+	/**
+	 * Load required files.
+	 */
+	private function includes() {
+		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-options.php';
+		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-style-generator.php';
+		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-repository.php';
+		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-group-cpt.php';
+		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-admin.php';
+		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-frontend.php';
+		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-cpt.php';
+	}
+
+	/**
+	 * Register hooks.
+	 */
+	private function hooks() {
+		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( 'NLF_Faq_Options', 'activate' ) );
+		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( 'NLF_Faq_Repository', 'maybe_create_table' ) );
+
+		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+		add_action( 'init', array( 'NLF_Faq_Group_CPT', 'register' ) );
+		add_action( 'init', array( 'NLF_Faq_Frontend', 'register_shortcodes' ) );
+		add_action( 'wp_enqueue_scripts', array( 'NLF_Faq_Frontend', 'enqueue_styles' ) );
+		add_action( 'admin_menu', array( 'NLF_Faq_Admin', 'register_menu' ) );
+		add_action( 'admin_init', array( 'NLF_Faq_Admin', 'register_settings' ) );
+		add_action( 'admin_enqueue_scripts', array( 'NLF_Faq_Admin', 'enqueue_assets' ) );
+		add_action( 'admin_post_nlf_faq_save_questions', array( 'NLF_Faq_Admin', 'handle_save_questions' ) );
+		add_action( 'update_option_' . NLF_Faq_Options::OPTION_KEY, array( 'NLF_Faq_Style_Generator', 'generate_and_save' ), 10, 2 );
+
+		// Gutenberg block registration using block.json and dynamic render.
+		if ( function_exists( 'register_block_type' ) ) {
+			add_action(
+				'init',
+				function () {
+					$block_dir  = NLF_FAQ_PLUGIN_DIR . 'blocks/faq';
+					$block_json = $block_dir . '/block.json';
+
+					if ( ! file_exists( $block_json ) ) {
+						return;
+					}
+
+					// Register editor script BEFORE block registration.
+					// The handle must match the editorScript in block.json.
+					wp_register_script(
+						'nlf-faq-block-editor',
+						NLF_FAQ_PLUGIN_URL . 'blocks/faq/editor.js',
+						array( 'wp-blocks', 'wp-element', 'wp-i18n', 'wp-components', 'wp-block-editor', 'wp-data' ),
+						NLF_FAQ_VERSION,
+						true
+					);
+
+					// Set script translations for the block editor.
+					if ( function_exists( 'wp_set_script_translations' ) ) {
+						wp_set_script_translations( 'nlf-faq-block-editor', 'next-level-faq', NLF_FAQ_PLUGIN_DIR . 'languages' );
+					}
+
+					// Register style handle BEFORE block registration.
+					// The handle must match the "style" in block.json.
+					$css_path = NLF_Faq_Style_Generator::get_css_file_path();
+					$css_url  = NLF_Faq_Style_Generator::get_css_file_url();
+
+					if ( $css_url ) {
+						$version = file_exists( $css_path ) ? filemtime( $css_path ) : NLF_FAQ_VERSION;
+
+						wp_register_style(
+							'nlf-faq-generated',
+							$css_url,
+							array(),
+							$version
+						);
+					}
+
+					// Register block type from block.json directory.
+					// WordPress will automatically read block.json and use registered scripts/styles.
+					$block = register_block_type(
+						$block_dir,
+						array(
+							'render_callback' => function( $attributes, $content ) {
+								$group_id = isset( $attributes['groupId'] ) ? (int) $attributes['groupId'] : 0;
+								$title    = isset( $attributes['title'] ) ? (string) $attributes['title'] : '';
+
+								$shortcode = '[nlf_faq';
+
+								if ( $group_id > 0 ) {
+									$shortcode .= ' group="' . esc_attr( $group_id ) . '"';
+								}
+
+								if ( '' !== $title ) {
+									$shortcode .= ' title="' . esc_attr( $title ) . '"';
+								}
+
+								$shortcode .= ']';
+
+								return do_shortcode( $shortcode );
+							},
+						)
+					);
+
+					// Ensure block is properly registered.
+					if ( ! $block ) {
+						return;
+					}
+				},
+				20
+			);
+		}
+	}
+
+	/**
+	 * Load plugin textdomain.
+	 */
+	public function load_textdomain() {
+		load_plugin_textdomain(
+			'next-level-faq',
+			false,
+			dirname( plugin_basename( NLF_FAQ_PLUGIN_FILE ) ) . '/languages'
+		);
+	}
+}
+
+/**
+ * Initialize plugin.
+ */
+function nlf_faq_init() {
+	return NLF_Faq_Plugin::instance();
+}
+
+nlf_faq_init();
+
+

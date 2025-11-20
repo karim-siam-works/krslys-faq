@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Builds and stores generated CSS for FAQ styles.
  */
-class AIO_Faq_Style_Generator {
+class NLF_Faq_Style_Generator {
 
 	/**
 	 * Get path to generated CSS file.
@@ -15,7 +15,7 @@ class AIO_Faq_Style_Generator {
 	 */
 	public static function get_css_file_path() {
 		$upload_dir = wp_upload_dir();
-		$dir        = trailingslashit( $upload_dir['basedir'] ) . 'aio-faq';
+		$dir        = trailingslashit( $upload_dir['basedir'] ) . 'nlf-faq';
 
 		wp_mkdir_p( $dir );
 
@@ -29,7 +29,7 @@ class AIO_Faq_Style_Generator {
 	 */
 	public static function get_css_file_url() {
 		$upload_dir = wp_upload_dir();
-		$url        = trailingslashit( $upload_dir['baseurl'] ) . 'aio-faq/generated-faq-style.css';
+		$url        = trailingslashit( $upload_dir['baseurl'] ) . 'nlf-faq/generated-faq-style.css';
 
 		return $url;
 	}
@@ -42,7 +42,7 @@ class AIO_Faq_Style_Generator {
 	 * @return string
 	 */
 	public static function build_css( $options ) {
-		$o = wp_parse_args( $options, AIO_Faq_Options::get_defaults() );
+		$o = wp_parse_args( $options, NLF_Faq_Options::get_defaults() );
 
 		// Convert px to rem (base: 16px = 1rem).
 		$border_radius_rem = round( intval( $o['container_border_radius'] ) / 16, 3 );
@@ -74,83 +74,83 @@ class AIO_Faq_Style_Generator {
 
 :root {
 	/* Typography */
-	--aio-faq-font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-	--aio-faq-line-height-tight: 1.25;
-	--aio-faq-line-height-normal: 1.5;
-	--aio-faq-line-height-relaxed: 1.75;
-	--aio-faq-letter-spacing-tight: -0.025em;
-	--aio-faq-letter-spacing-normal: 0;
-	--aio-faq-letter-spacing-wide: 0.025em;
+	--nlf-faq-font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	--nlf-faq-line-height-tight: 1.25;
+	--nlf-faq-line-height-normal: 1.5;
+	--nlf-faq-line-height-relaxed: 1.75;
+	--nlf-faq-letter-spacing-tight: -0.025em;
+	--nlf-faq-letter-spacing-normal: 0;
+	--nlf-faq-letter-spacing-wide: 0.025em;
 
 	/* Colors - User Defined */
-	--aio-faq-container-bg: <?php echo esc_html( $o['container_background'] ); ?>;
-	--aio-faq-border-color: <?php echo esc_html( $o['container_border_color'] ); ?>;
-	--aio-faq-question-color: <?php echo esc_html( $o['question_color'] ); ?>;
-	--aio-faq-answer-color: <?php echo esc_html( $o['answer_color'] ); ?>;
-	--aio-faq-accent-color: <?php echo esc_html( $o['accent_color'] ); ?>;
+	--nlf-faq-container-bg: <?php echo esc_html( $o['container_background'] ); ?>;
+	--nlf-faq-border-color: <?php echo esc_html( $o['container_border_color'] ); ?>;
+	--nlf-faq-question-color: <?php echo esc_html( $o['question_color'] ); ?>;
+	--nlf-faq-answer-color: <?php echo esc_html( $o['answer_color'] ); ?>;
+	--nlf-faq-accent-color: <?php echo esc_html( $o['accent_color'] ); ?>;
 
 	/* Spacing (rem-based) */
-	--aio-faq-border-radius: <?php echo esc_html( $border_radius_rem ); ?>rem;
-	--aio-faq-padding: <?php echo esc_html( $padding_rem ); ?>rem;
-	--aio-faq-gap: <?php echo esc_html( $gap_rem ); ?>rem;
+	--nlf-faq-border-radius: <?php echo esc_html( $border_radius_rem ); ?>rem;
+	--nlf-faq-padding: <?php echo esc_html( $padding_rem ); ?>rem;
+	--nlf-faq-gap: <?php echo esc_html( $gap_rem ); ?>rem;
 
 	/* Typography Sizes */
-	--aio-faq-question-size: <?php echo esc_html( $question_font_rem ); ?>rem;
-	--aio-faq-answer-size: <?php echo esc_html( $answer_font_rem ); ?>rem;
-	--aio-faq-question-weight: <?php echo intval( $o['question_font_weight'] ); ?>;
+	--nlf-faq-question-size: <?php echo esc_html( $question_font_rem ); ?>rem;
+	--nlf-faq-answer-size: <?php echo esc_html( $answer_font_rem ); ?>rem;
+	--nlf-faq-question-weight: <?php echo intval( $o['question_font_weight'] ); ?>;
 
 	/* Shadows */
-	--aio-faq-shadow: <?php echo esc_html( $shadow_css ); ?>;
+	--nlf-faq-shadow: <?php echo esc_html( $shadow_css ); ?>;
 
 	/* Transitions */
-	--aio-faq-transition: <?php echo esc_html( $transition_base ); ?>;
-	--aio-faq-answer-transition: <?php echo esc_html( $answer_transition ); ?>;
+	--nlf-faq-transition: <?php echo esc_html( $transition_base ); ?>;
+	--nlf-faq-answer-transition: <?php echo esc_html( $answer_transition ); ?>;
 }
 
 /* ============================================
    Base Styles
    ============================================ */
 
-.aio-faq {
-	font-family: var(--aio-faq-font-family);
-	background: var(--aio-faq-container-bg);
-	border: 1px solid var(--aio-faq-border-color);
-	border-radius: var(--aio-faq-border-radius);
-	padding: var(--aio-faq-padding);
-	box-shadow: var(--aio-faq-shadow);
+.nlf-faq {
+	font-family: var(--nlf-faq-font-family);
+	background: var(--nlf-faq-container-bg);
+	border: 1px solid var(--nlf-faq-border-color);
+	border-radius: var(--nlf-faq-border-radius);
+	padding: var(--nlf-faq-padding);
+	box-shadow: var(--nlf-faq-shadow);
 	box-sizing: border-box;
 	width: 100%;
 }
 
-.aio-faq__item {
-	border-bottom: 1px solid var(--aio-faq-border-color);
+.nlf-faq__item {
+	border-bottom: 1px solid var(--nlf-faq-border-color);
 	padding: 0.75rem 0;
-	transition: border-color var(--aio-faq-transition);
+	transition: border-color var(--nlf-faq-transition);
 }
 
-.aio-faq__item:last-child {
+.nlf-faq__item:last-child {
 	border-bottom: none;
 }
 
-.aio-faq__item + .aio-faq__item {
-	margin-top: var(--aio-faq-gap);
+.nlf-faq__item + .nlf-faq__item {
+	margin-top: var(--nlf-faq-gap);
 }
 
 /* ============================================
    Question Styles
    ============================================ */
 
-.aio-faq__question {
+.nlf-faq__question {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	cursor: pointer;
-	color: var(--aio-faq-question-color);
-	font-size: var(--aio-faq-question-size);
-	font-weight: var(--aio-faq-question-weight);
-	line-height: var(--aio-faq-line-height-tight);
-	letter-spacing: var(--aio-faq-letter-spacing-tight);
-	transition: color var(--aio-faq-transition);
+	color: var(--nlf-faq-question-color);
+	font-size: var(--nlf-faq-question-size);
+	font-weight: var(--nlf-faq-question-weight);
+	line-height: var(--nlf-faq-line-height-tight);
+	letter-spacing: var(--nlf-faq-letter-spacing-tight);
+	transition: color var(--nlf-faq-transition);
 	padding: 0;
 	margin: 0;
 	border: none;
@@ -159,14 +159,14 @@ class AIO_Faq_Style_Generator {
 	text-align: left;
 }
 
-.aio-faq__question:hover,
-.aio-faq__question:focus {
-	color: var(--aio-faq-accent-color);
+.nlf-faq__question:hover,
+.nlf-faq__question:focus {
+	color: var(--nlf-faq-accent-color);
 	outline: none;
 }
 
-.aio-faq__question:focus-visible {
-	outline: 2px solid var(--aio-faq-accent-color);
+.nlf-faq__question:focus-visible {
+	outline: 2px solid var(--nlf-faq-accent-color);
 	outline-offset: 2px;
 	border-radius: 0.25rem;
 }
@@ -175,38 +175,38 @@ class AIO_Faq_Style_Generator {
    Icon Styles
    ============================================ */
 
-.aio-faq__icon {
+.nlf-faq__icon {
 	margin-left: 0.75rem;
-	color: var(--aio-faq-accent-color);
+	color: var(--nlf-faq-accent-color);
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	width: 1.25rem;
 	height: 1.25rem;
 	flex-shrink: 0;
-	transition: transform var(--aio-faq-transition), color var(--aio-faq-transition);
+	transition: transform var(--nlf-faq-transition), color var(--nlf-faq-transition);
 }
 
-.aio-faq__icon::before {
+.nlf-faq__icon::before {
 	content: '+';
 	font-weight: 700;
 	font-size: 1.125rem;
 	line-height: 1;
 }
 
-.aio-faq__item.is-open .aio-faq__icon::before {
+.nlf-faq__item.is-open .nlf-faq__icon::before {
 	content: '-';
 }
 
 <?php if ( 'chevron' === $o['icon_style'] ) : ?>
-.aio-faq__icon::before {
+.nlf-faq__icon::before {
 	content: '›';
 	display: block;
 	transform: rotate(90deg);
-	transition: transform var(--aio-faq-transition);
+	transition: transform var(--nlf-faq-transition);
 }
 
-.aio-faq__item.is-open .aio-faq__icon::before {
+.nlf-faq__item.is-open .nlf-faq__icon::before {
 	transform: rotate(270deg);
 }
 <?php endif; ?>
@@ -215,31 +215,31 @@ class AIO_Faq_Style_Generator {
    Answer Styles
    ============================================ */
 
-.aio-faq__answer {
-	color: var(--aio-faq-answer-color);
-	font-size: var(--aio-faq-answer-size);
-	line-height: var(--aio-faq-line-height-relaxed);
-	letter-spacing: var(--aio-faq-letter-spacing-normal);
+.nlf-faq__answer {
+	color: var(--nlf-faq-answer-color);
+	font-size: var(--nlf-faq-answer-size);
+	line-height: var(--nlf-faq-line-height-relaxed);
+	letter-spacing: var(--nlf-faq-letter-spacing-normal);
 	margin-top: 0.75rem;
 	padding-top: 0.75rem;
 	max-height: 0;
 	overflow: hidden;
 	opacity: 0;
 	transform: translateY(-0.25rem);
-	transition: var(--aio-faq-answer-transition);
+	transition: var(--nlf-faq-answer-transition);
 }
 
-.aio-faq__item.is-open .aio-faq__answer {
+.nlf-faq__item.is-open .nlf-faq__answer {
 	max-height: 1000px;
 	opacity: 1;
 	transform: translateY(0);
 }
 
-.aio-faq__answer p {
+.nlf-faq__answer p {
 	margin: 0 0 0.75rem 0;
 }
 
-.aio-faq__answer p:last-child {
+.nlf-faq__answer p:last-child {
 	margin-bottom: 0;
 }
 
@@ -247,9 +247,9 @@ class AIO_Faq_Style_Generator {
    Highlight State
    ============================================ */
 
-.aio-faq__item--highlight {
+.nlf-faq__item--highlight {
 	background: rgba(59, 130, 246, 0.04);
-	border-radius: var(--aio-faq-border-radius);
+	border-radius: var(--nlf-faq-border-radius);
 	padding-inline: 0.5rem;
 }
 
@@ -261,56 +261,56 @@ class AIO_Faq_Style_Generator {
 
 /* Small devices (640px and up) */
 @media (min-width: 40rem) {
-	.aio-faq {
-		padding: calc(var(--aio-faq-padding) * 1.125);
+	.nlf-faq {
+		padding: calc(var(--nlf-faq-padding) * 1.125);
 	}
 
-	.aio-faq__question {
-		font-size: calc(var(--aio-faq-question-size) * 1.05);
+	.nlf-faq__question {
+		font-size: calc(var(--nlf-faq-question-size) * 1.05);
 	}
 }
 
 /* Medium devices (768px and up) */
 @media (min-width: 48rem) {
-	.aio-faq {
-		padding: calc(var(--aio-faq-padding) * 1.25);
+	.nlf-faq {
+		padding: calc(var(--nlf-faq-padding) * 1.25);
 	}
 
-	.aio-faq__item {
+	.nlf-faq__item {
 		padding: 0.875rem 0;
 	}
 }
 
 /* Large devices (1024px and up) */
 @media (min-width: 64rem) {
-	.aio-faq {
+	.nlf-faq {
 		max-width: 100%;
 	}
 
-	.aio-faq__question {
-		font-size: var(--aio-faq-question-size);
+	.nlf-faq__question {
+		font-size: var(--nlf-faq-question-size);
 	}
 }
 
 /* Mobile-specific adjustments */
 @media (max-width: 39.9375rem) {
-	.aio-faq {
+	.nlf-faq {
 		padding: 1rem;
 		border-radius: 0.5rem;
 	}
 
-	.aio-faq__question {
-		font-size: calc(var(--aio-faq-question-size) * 0.95);
-		line-height: var(--aio-faq-line-height-normal);
+	.nlf-faq__question {
+		font-size: calc(var(--nlf-faq-question-size) * 0.95);
+		line-height: var(--nlf-faq-line-height-normal);
 	}
 
-	.aio-faq__answer {
-		font-size: calc(var(--aio-faq-answer-size) * 0.95);
+	.nlf-faq__answer {
+		font-size: calc(var(--nlf-faq-answer-size) * 0.95);
 		margin-top: 0.5rem;
 		padding-top: 0.5rem;
 	}
 
-	.aio-faq__icon {
+	.nlf-faq__icon {
 		width: 1.125rem;
 		height: 1.125rem;
 		margin-left: 0.5rem;
@@ -329,7 +329,7 @@ class AIO_Faq_Style_Generator {
 	 * @return void
 	 */
 	public static function generate_and_save() {
-		$options = AIO_Faq_Options::get_options();
+		$options = NLF_Faq_Options::get_options();
 		$css     = self::build_css( $options );
 		$path    = self::get_css_file_path();
 

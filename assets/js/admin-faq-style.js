@@ -2,12 +2,12 @@
 	'use strict';
 
 	function applyPreviewFromData() {
-		var root = $('#aio-faq-preview-root');
+		var root = $('#nlf-faq-preview-root');
 		if (!root.length) {
 			return;
 		}
 
-		var container = root.find('.aio-faq');
+		var container = root.find('.nlf-faq');
 
 		container.css({
 			backgroundColor: root.data('container-background'),
@@ -19,24 +19,24 @@
 				: 'none'
 		});
 
-		container.find('.aio-faq__item + .aio-faq__item').css('margin-top', root.data('gap-between-items') + 'px');
+		container.find('.nlf-faq__item + .nlf-faq__item').css('margin-top', root.data('gap-between-items') + 'px');
 
-		container.find('.aio-faq__question').css({
+		container.find('.nlf-faq__question').css({
 			color: root.data('question-color'),
 			fontSize: root.data('question-font-size') + 'px',
 			fontWeight: root.data('question-font-weight')
 		});
 
-		container.find('.aio-faq__answer').css({
+		container.find('.nlf-faq__answer').css({
 			color: root.data('answer-color'),
 			fontSize: root.data('answer-font-size') + 'px'
 		});
 
-		container.find('.aio-faq__icon').css('color', root.data('accent-color'));
+		container.find('.nlf-faq__icon').css('color', root.data('accent-color'));
 	}
 
 	function updateDataProp(prop, value) {
-		var root = $('#aio-faq-preview-root');
+		var root = $('#nlf-faq-preview-root');
 		if (!root.length) {
 			return;
 		}
@@ -92,7 +92,7 @@
 	$(function () {
 		// Initialize WordPress color picker for all color fields.
 		if (typeof $.fn.wpColorPicker !== 'undefined') {
-			$('.aio-color-field').wpColorPicker({
+			$('.nlf-color-field').wpColorPicker({
 				change: function (event, ui) {
 					var $el = $(this);
 					var prop = $el.data('preview-prop');
@@ -109,11 +109,11 @@
 
 		applyPreviewFromData();
 
-		$('#aio-faq-style-form').on('input change', '[data-preview-prop]', function () {
+		$('#nlf-faq-style-form').on('input change', '[data-preview-prop]', function () {
 			var $el = $(this);
 			
 			// Skip color fields as they're handled by color picker callbacks.
-			if ($el.hasClass('aio-color-field')) {
+			if ($el.hasClass('nlf-color-field')) {
 				return;
 			}
 
@@ -130,26 +130,26 @@
 		});
 
 		// Simple saved indicator using WordPress submit button.
-		var $form = $('#aio-faq-style-form');
+		var $form = $('#nlf-faq-style-form');
 		var $submit = $form.find('input[type="submit"], button[type="submit"]');
 
 		$form.on('submit', function () {
-			if (!$submit.length || typeof aioFaqAdmin === 'undefined') {
+			if (!$submit.length || typeof nlfFaqAdmin === 'undefined') {
 				return;
 			}
 			var originalText = $submit.val() || $submit.text();
 
 			if ($submit.is('input')) {
-				$submit.val(aioFaqAdmin.i18n.saving);
+				$submit.val(nlfFaqAdmin.i18n.saving);
 			} else {
-				$submit.text(aioFaqAdmin.i18n.saving);
+				$submit.text(nlfFaqAdmin.i18n.saving);
 			}
 
 			setTimeout(function () {
 				if ($submit.is('input')) {
-					$submit.val(aioFaqAdmin.i18n.saved);
+					$submit.val(nlfFaqAdmin.i18n.saved);
 				} else {
-					$submit.text(aioFaqAdmin.i18n.saved);
+					$submit.text(nlfFaqAdmin.i18n.saved);
 				}
 
 				setTimeout(function () {

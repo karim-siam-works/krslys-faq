@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Data access layer for FAQ items stored in a custom table.
  */
-class AIO_Faq_Repository {
+class NLF_Faq_Repository {
 
 	/**
 	 * Get table name.
@@ -16,16 +16,16 @@ class AIO_Faq_Repository {
 	public static function get_table_name() {
 		global $wpdb;
 
-		return $wpdb->prefix . 'aio_faq_items';
+		return $wpdb->prefix . 'nlf_faq_items';
 	}
 
 	/**
 	 * Maybe create or upgrade the custom table.
 	 */
 	public static function maybe_create_table() {
-		$installed_version = get_option( 'aio_faq_db_version' );
+		$installed_version = get_option( 'nlf_faq_db_version' );
 
-		if ( AIO_FAQ_DB_VERSION === $installed_version ) {
+		if ( NLF_FAQ_DB_VERSION === $installed_version ) {
 			return;
 		}
 
@@ -57,7 +57,7 @@ class AIO_Faq_Repository {
 
 		dbDelta( $sql );
 
-		update_option( 'aio_faq_db_version', AIO_FAQ_DB_VERSION );
+		update_option( 'nlf_faq_db_version', NLF_FAQ_DB_VERSION );
 	}
 
 	/**

@@ -2,17 +2,17 @@
 	'use strict';
 
 	function renumberGroupCheckboxes() {
-		$('#aio-faq-group-questions-body .aio-faq-question-row').each(function (index) {
+		$('#nlf-faq-group-questions-body .nlf-faq-question-row').each(function (index) {
 			var $row = $(this);
 
-			$row.find('input[type="checkbox"][name^="aio_faq_group_visible"]').attr('name', 'aio_faq_group_visible[' + index + ']');
-			$row.find('input[type="checkbox"][name^="aio_faq_group_open"]').attr('name', 'aio_faq_group_open[' + index + ']');
-			$row.find('input[type="checkbox"][name^="aio_faq_group_highlight"]').attr('name', 'aio_faq_group_highlight[' + index + ']');
+			$row.find('input[type="checkbox"][name^="nlf_faq_group_visible"]').attr('name', 'nlf_faq_group_visible[' + index + ']');
+			$row.find('input[type="checkbox"][name^="nlf_faq_group_open"]').attr('name', 'nlf_faq_group_open[' + index + ']');
+			$row.find('input[type="checkbox"][name^="nlf_faq_group_highlight"]').attr('name', 'nlf_faq_group_highlight[' + index + ']');
 		});
 	}
 
 	function initNewEditor($row) {
-		var $textarea = $row.find('.aio-faq-group-answer-editor');
+		var $textarea = $row.find('.nlf-faq-group-answer-editor');
 		if (!$textarea.length) {
 			return;
 		}
@@ -25,7 +25,7 @@
 		// Ensure textarea has a unique ID before initialization
 		var id = $textarea.attr('id');
 		if (!id) {
-			id = 'aio-faq-group-answer-' + String(Date.now());
+			id = 'nlf-faq-group-answer-' + String(Date.now());
 			$textarea.attr('id', id);
 		}
 
@@ -47,16 +47,16 @@
 	}
 
 	$(function () {
-		var $body = $('#aio-faq-group-questions-body');
+		var $body = $('#nlf-faq-group-questions-body');
 		if (!$body.length) {
 			return;
 		}
 
 		// Initialize sortable for drag-and-drop reordering
 		$body.sortable({
-			handle: '.aio-faq-sort-handle',
-			items: '.aio-faq-question-row',
-			placeholder: 'aio-faq-sort-placeholder',
+			handle: '.nlf-faq-sort-handle',
+			items: '.nlf-faq-question-row',
+			placeholder: 'nlf-faq-sort-placeholder',
 			cursor: 'move',
 			opacity: 0.8,
 			tolerance: 'pointer',
@@ -67,7 +67,7 @@
 				var editorIds = [];
 				
 				// Find all textareas that might have editors (both ID patterns and class-based)
-				$row.find('textarea.aio-faq-group-answer-editor, textarea[id^="aio_faq_group_answer_"], textarea[id^="aio-faq-group-answer-"]').each(function () {
+				$row.find('textarea.nlf-faq-group-answer-editor, textarea[id^="nlf_faq_group_answer_"], textarea[id^="nlf-faq-group-answer-"]').each(function () {
 					var $textarea = $(this);
 					var id = $textarea.attr('id');
 					if (id && window.tinymce) {
@@ -124,12 +124,12 @@
 			}
 		});
 
-		var rowTemplate = $('#tmpl-aio-faq-group-row').html();
+		var rowTemplate = $('#tmpl-nlf-faq-group-row').html();
 
-		$('#aio-faq-group-add-row').on('click', function (e) {
+		$('#nlf-faq-group-add-row').on('click', function (e) {
 			e.preventDefault();
 
-			var index = $body.find('.aio-faq-question-row').length;
+			var index = $body.find('.nlf-faq-question-row').length;
 			var html = rowTemplate.replace(/{{index}}/g, String(index));
 
 			var $row = $(html);
@@ -140,12 +140,12 @@
 			$body.sortable('refresh');
 		});
 
-		$body.on('click', '.aio-faq-remove-row', function (e) {
+		$body.on('click', '.nlf-faq-remove-row', function (e) {
 			e.preventDefault();
-			var $row = $(this).closest('.aio-faq-question-row');
+			var $row = $(this).closest('.nlf-faq-question-row');
 
 			// Remove TinyMCE editor instance to avoid leaks
-			var $textarea = $row.find('.aio-faq-group-answer-editor');
+			var $textarea = $row.find('.nlf-faq-group-answer-editor');
 			if ($textarea.length) {
 				var id = $textarea.attr('id');
 				if (id && window.wp && window.wp.editor && typeof window.wp.editor.remove === 'function') {

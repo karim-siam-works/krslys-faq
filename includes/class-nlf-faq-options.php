@@ -6,9 +6,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Handles FAQ style options.
  */
-class AIO_Faq_Options {
+class NLF_Faq_Options {
 
-	const OPTION_KEY = 'aio_faq_style_options';
+	const OPTION_KEY = 'nlf_faq_style_options';
 
 	/**
 	 * Default options for FAQ styles.
@@ -105,8 +105,8 @@ class AIO_Faq_Options {
 			add_option( self::OPTION_KEY, self::get_defaults() );
 		}
 
-		if ( class_exists( 'AIO_Faq_Style_Generator' ) ) {
-			AIO_Faq_Style_Generator::generate_and_save();
+		if ( class_exists( 'NLF_Faq_Style_Generator' ) ) {
+			NLF_Faq_Style_Generator::generate_and_save();
 		}
 	}
 }

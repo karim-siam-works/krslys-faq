@@ -85,8 +85,8 @@
    Base Typography
    ============================================ */
 
-.aio-faq-admin,
-.aio-faq-admin * {
+.nlf-faq-admin,
+.nlf-faq-admin * {
 	font-family: var(--font-family-base);
 	box-sizing: border-box;
 }
@@ -95,18 +95,18 @@
    Layout & Container Styles
    ============================================ */
 
-.aio-faq-admin__layout {
+.nlf-faq-admin__layout {
 	display: flex;
 	gap: var(--spacing-8);
 	margin-top: var(--spacing-5);
 }
 
-.aio-faq-admin__left {
+.nlf-faq-admin__left {
 	flex: 1 1 55%;
 	min-width: 0;
 }
 
-.aio-faq-admin__right {
+.nlf-faq-admin__right {
 	flex: 1 1 45%;
 	min-width: 0;
 	background: var(--color-white);
@@ -117,11 +117,11 @@
 	transition: box-shadow var(--transition-base);
 }
 
-.aio-faq-admin__right:hover {
+.nlf-faq-admin__right:hover {
 	box-shadow: var(--shadow-xl);
 }
 
-.aio-faq-admin__right h2 {
+.nlf-faq-admin__right h2 {
 	margin-top: 0;
 	font-size: var(--font-size-xl);
 	font-weight: var(--font-weight-semibold);
@@ -130,13 +130,13 @@
 	letter-spacing: var(--letter-spacing-tight);
 }
 
-.aio-faq-admin .form-table th {
+.nlf-faq-admin .form-table th {
 	width: 13.75rem; /* 220px */
 	font-weight: var(--font-weight-medium);
 	color: var(--color-slate-700);
 }
 
-.aio-faq-admin .aio-faq {
+.nlf-faq-admin .nlf-faq {
 	margin-top: var(--spacing-3);
 }
 
@@ -144,7 +144,7 @@
    Questions Table (Legacy) - Maintain Compatibility
    ============================================ */
 
-.aio-faq-questions-table .aio-faq-sort-handle {
+.nlf-faq-questions-table .nlf-faq-sort-handle {
 	cursor: move;
 	text-align: center;
 	color: var(--color-slate-400);
@@ -152,15 +152,15 @@
 	transition: color var(--transition-base);
 }
 
-.aio-faq-questions-table .aio-faq-sort-handle:hover {
+.nlf-faq-questions-table .nlf-faq-sort-handle:hover {
 	color: var(--color-slate-600);
 }
 
-.aio-faq-questions-table .aio-faq-visible-cell {
+.nlf-faq-questions-table .nlf-faq-visible-cell {
 	text-align: center;
 }
 
-.aio-faq-questions-table .aio-faq-actions-cell {
+.nlf-faq-questions-table .nlf-faq-actions-cell {
 	text-align: right;
 }
 
@@ -168,7 +168,7 @@
    FAQ Group Table - Modern Styling
    ============================================ */
 
-.aio-faq-group-table {
+.nlf-faq-group-table {
 	border-collapse: separate;
 	border-spacing: 0;
 	width: 100%;
@@ -178,7 +178,7 @@
 	box-shadow: var(--shadow-sm);
 }
 
-.aio-faq-group-table .aio-faq-sort-handle {
+.nlf-faq-group-table .nlf-faq-sort-handle {
 	vertical-align: top;
 	cursor: move;
 	text-align: center;
@@ -189,7 +189,7 @@
 	user-select: none;
 }
 
-.aio-faq-group-table .aio-faq-sort-handle:hover {
+.nlf-faq-group-table .nlf-faq-sort-handle:hover {
 	color: var(--color-slate-600);
 }
 
@@ -197,7 +197,7 @@
    Sortable Drag-and-Drop Styles
    ============================================ */
 
-.aio-faq-sort-placeholder {
+.nlf-faq-sort-placeholder {
 	display: table-row;
 	height: 60px;
 	background: var(--color-slate-100);
@@ -206,27 +206,27 @@
 	opacity: 0.5;
 }
 
-.aio-faq-group-table .ui-sortable-helper {
+.nlf-faq-group-table .ui-sortable-helper {
 	display: table-row;
 	background: var(--color-white);
 	box-shadow: var(--shadow-lg);
 	opacity: 0.8;
 }
 
-.aio-faq-group-table .ui-sortable-helper td {
+.nlf-faq-group-table .ui-sortable-helper td {
 	background: var(--color-white);
 }
 
-.aio-faq-group-table td {
+.nlf-faq-group-table td {
 	vertical-align: top;
 }
 
-.aio-faq-group-table th,
-.aio-faq-group-table td {
+.nlf-faq-group-table th,
+.nlf-faq-group-table td {
 	padding: var(--spacing-4) var(--spacing-3);
 }
 
-.aio-faq-group-table th {
+.nlf-faq-group-table th {
 	font-weight: var(--font-weight-semibold);
 	font-size: var(--font-size-sm);
 	color: var(--color-slate-700);
@@ -236,30 +236,30 @@
 	border-bottom: 1px solid var(--color-slate-200);
 }
 
-.aio-faq-group-table td:first-child {
+.nlf-faq-group-table td:first-child {
 	width: 2rem; /* 32px */
 	white-space: nowrap;
 }
 
-.aio-faq-group-table td:nth-child(2),
-.aio-faq-group-table td:nth-child(3) {
+.nlf-faq-group-table td:nth-child(2),
+.nlf-faq-group-table td:nth-child(3) {
 	width: auto;
 }
 
-.aio-faq-group-table input.regular-text,
-.aio-faq-group-table .large-text,
-.aio-faq-group-table .wp-editor-wrap {
+.nlf-faq-group-table input.regular-text,
+.nlf-faq-group-table .large-text,
+.nlf-faq-group-table .wp-editor-wrap {
 	max-width: 100%;
 	width: 100%;
 	box-sizing: border-box;
 }
 
-.aio-faq-group-table .wp-editor-area {
+.nlf-faq-group-table .wp-editor-area {
 	width: 100% !important;
 }
 
-.aio-faq-group-table .aio-faq-visible-cell,
-.aio-faq-group-table .aio-faq-actions-cell {
+.nlf-faq-group-table .nlf-faq-visible-cell,
+.nlf-faq-group-table .nlf-faq-actions-cell {
 	white-space: nowrap;
 }
 
@@ -267,24 +267,24 @@
    Question & Answer Stacked Layout
    ============================================ */
 
-.aio-faq-content-cell {
+.nlf-faq-content-cell {
 	vertical-align: top;
 	position: relative;
 	padding: var(--spacing-5) var(--spacing-6) var(--spacing-5) var(--spacing-4);
 	padding-right: 3.5rem; /* 56px - space for remove button */
 }
 
-.aio-faq-question-field,
-.aio-faq-answer-field {
+.nlf-faq-question-field,
+.nlf-faq-answer-field {
 	margin-bottom: var(--spacing-6);
 }
 
-.aio-faq-question-field:last-child,
-.aio-faq-answer-field:last-child {
+.nlf-faq-question-field:last-child,
+.nlf-faq-answer-field:last-child {
 	margin-bottom: 0;
 }
 
-.aio-faq-field-label {
+.nlf-faq-field-label {
 	display: block;
 	font-weight: var(--font-weight-semibold);
 	font-size: var(--font-size-xs);
@@ -295,7 +295,7 @@
 	line-height: var(--line-height-tight);
 }
 
-.aio-faq-question-field input[type="text"] {
+.nlf-faq-question-field input[type="text"] {
 	width: 100%;
 	margin-bottom: 0;
 	padding: var(--spacing-3) var(--spacing-4);
@@ -308,17 +308,17 @@
 	transition: all var(--transition-base);
 }
 
-.aio-faq-question-field input[type="text"]:focus {
+.nlf-faq-question-field input[type="text"]:focus {
 	outline: none;
 	border-color: var(--color-primary-500);
 	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.aio-faq-question-field input[type="text"]::placeholder {
+.nlf-faq-question-field input[type="text"]::placeholder {
 	color: var(--color-slate-400);
 }
 
-.aio-faq-answer-field .wp-editor-wrap {
+.nlf-faq-answer-field .wp-editor-wrap {
 	margin-top: 0;
 	border: 1px solid var(--color-slate-300);
 	border-radius: var(--radius-md);
@@ -326,7 +326,7 @@
 	transition: all var(--transition-base);
 }
 
-.aio-faq-answer-field .wp-editor-wrap:focus-within {
+.nlf-faq-answer-field .wp-editor-wrap:focus-within {
 	border-color: var(--color-primary-500);
 	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
@@ -335,23 +335,23 @@
    Options Column Styling
    ============================================ */
 
-.aio-faq-options-cell {
+.nlf-faq-options-cell {
 	vertical-align: top;
 	padding: var(--spacing-5) var(--spacing-4);
 	background: var(--color-slate-50);
 }
 
-.aio-faq-options-group {
+.nlf-faq-options-group {
 	display: flex;
 	flex-direction: column;
 	gap: var(--spacing-4);
 }
 
-.aio-faq-options-group p {
+.nlf-faq-options-group p {
 	margin: 0;
 }
 
-.aio-faq-option-label {
+.nlf-faq-option-label {
 	display: block;
 	font-size: var(--font-size-xs);
 	font-weight: var(--font-weight-semibold);
@@ -362,7 +362,7 @@
 	line-height: var(--line-height-tight);
 }
 
-.aio-faq-options-group label {
+.nlf-faq-options-group label {
 	display: flex;
 	flex-direction: column;
 	gap: var(--spacing-2);
@@ -373,27 +373,27 @@
 	transition: color var(--transition-base);
 }
 
-.aio-faq-options-group label:hover {
+.nlf-faq-options-group label:hover {
 	color: var(--color-slate-900);
 }
 
 /* Checkbox labels should be horizontal */
-.aio-faq-options-group p:nth-child(1) label,
-.aio-faq-options-group p:nth-child(2) label,
-.aio-faq-options-group p:nth-child(3) label {
+.nlf-faq-options-group p:nth-child(1) label,
+.nlf-faq-options-group p:nth-child(2) label,
+.nlf-faq-options-group p:nth-child(3) label {
 	flex-direction: row;
 	align-items: center;
 	gap: var(--spacing-2);
 }
 
-.aio-faq-options-group p:nth-child(1) label .aio-faq-option-label,
-.aio-faq-options-group p:nth-child(2) label .aio-faq-option-label,
-.aio-faq-options-group p:nth-child(3) label .aio-faq-option-label {
+.nlf-faq-options-group p:nth-child(1) label .nlf-faq-option-label,
+.nlf-faq-options-group p:nth-child(2) label .nlf-faq-option-label,
+.nlf-faq-options-group p:nth-child(3) label .nlf-faq-option-label {
 	display: none;
 }
 
 /* Checkbox Styling */
-.aio-faq-options-group input[type="checkbox"] {
+.nlf-faq-options-group input[type="checkbox"] {
 	width: 1.125rem; /* 18px */
 	height: 1.125rem; /* 18px */
 	margin: 0;
@@ -407,16 +407,16 @@
 	flex-shrink: 0;
 }
 
-.aio-faq-options-group input[type="checkbox"]:hover {
+.nlf-faq-options-group input[type="checkbox"]:hover {
 	border-color: var(--color-slate-400);
 }
 
-.aio-faq-options-group input[type="checkbox"]:checked {
+.nlf-faq-options-group input[type="checkbox"]:checked {
 	background: var(--color-primary-500);
 	border-color: var(--color-primary-500);
 }
 
-.aio-faq-options-group input[type="checkbox"]:checked::after {
+.nlf-faq-options-group input[type="checkbox"]:checked::after {
 	content: '✓';
 	position: absolute;
 	top: 50%;
@@ -428,7 +428,7 @@
 	line-height: 1;
 }
 
-.aio-faq-options-group input[type="checkbox"]:focus {
+.nlf-faq-options-group input[type="checkbox"]:focus {
 	outline: none;
 	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
@@ -437,7 +437,7 @@
    Remove Button with X Icon - Absolute Position
    ============================================ */
 
-.aio-faq-remove-row {
+.nlf-faq-remove-row {
 	position: absolute;
 	top: var(--spacing-4);
 	right: var(--spacing-4);
@@ -458,7 +458,7 @@
 	box-shadow: var(--shadow-sm);
 }
 
-.aio-faq-remove-row:hover {
+.nlf-faq-remove-row:hover {
 	background: var(--color-error-50);
 	border-color: var(--color-error-500);
 	color: var(--color-error-700);
@@ -466,16 +466,16 @@
 	transform: scale(1.05);
 }
 
-.aio-faq-remove-row:active {
+.nlf-faq-remove-row:active {
 	transform: scale(0.95);
 }
 
-.aio-faq-remove-row:focus {
+.nlf-faq-remove-row:focus {
 	outline: none;
 	box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
 }
 
-.aio-faq-remove-icon {
+.nlf-faq-remove-icon {
 	font-size: var(--font-size-lg);
 	line-height: 1;
 	font-weight: var(--font-weight-medium);
@@ -486,7 +486,7 @@
    Add Button Styling
    ============================================ */
 
-#aio-faq-group-add-row {
+#nlf-faq-group-add-row {
 	background: var(--color-primary-500);
 	color: var(--color-white);
 	border: none;
@@ -500,18 +500,18 @@
 	box-shadow: var(--shadow-sm);
 }
 
-#aio-faq-group-add-row:hover {
+#nlf-faq-group-add-row:hover {
 	background: var(--color-primary-600);
 	box-shadow: var(--shadow-md);
 	transform: translateY(-1px);
 }
 
-#aio-faq-group-add-row:active {
+#nlf-faq-group-add-row:active {
 	transform: translateY(0);
 	box-shadow: var(--shadow-sm);
 }
 
-#aio-faq-group-add-row:focus {
+#nlf-faq-group-add-row:focus {
 	outline: none;
 	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
@@ -521,45 +521,45 @@
    ============================================ */
 
 @media (max-width: 960px) {
-	.aio-faq-admin__layout {
+	.nlf-faq-admin__layout {
 		flex-direction: column;
 		gap: var(--spacing-6);
 	}
 	
-	.aio-faq-content-cell {
+	.nlf-faq-content-cell {
 		padding-right: var(--spacing-4);
 		padding-bottom: 3rem; /* Space for remove button on mobile */
 	}
 	
-	.aio-faq-remove-row {
+	.nlf-faq-remove-row {
 		top: auto;
 		bottom: var(--spacing-4);
 		right: var(--spacing-4);
 	}
 	
-	.aio-faq-question-field,
-	.aio-faq-answer-field {
+	.nlf-faq-question-field,
+	.nlf-faq-answer-field {
 		margin-bottom: var(--spacing-5);
 	}
 	
-	.aio-faq-group-table {
+	.nlf-faq-group-table {
 		display: block;
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
 	}
 	
-	.aio-faq-group-table thead {
+	.nlf-faq-group-table thead {
 		display: none;
 	}
 	
-	.aio-faq-group-table tbody,
-	.aio-faq-group-table tbody tr,
-	.aio-faq-group-table tbody td {
+	.nlf-faq-group-table tbody,
+	.nlf-faq-group-table tbody tr,
+	.nlf-faq-group-table tbody td {
 		display: block;
 		width: 100%;
 	}
 	
-	.aio-faq-group-table tbody tr {
+	.nlf-faq-group-table tbody tr {
 		margin-bottom: var(--spacing-6);
 		border: 1px solid var(--color-slate-200);
 		border-radius: var(--radius-lg);
@@ -568,12 +568,12 @@
 		box-shadow: var(--shadow-sm);
 	}
 	
-	.aio-faq-group-table tbody td {
+	.nlf-faq-group-table tbody td {
 		padding: var(--spacing-3) 0;
 		border: none;
 	}
 	
-	.aio-faq-options-cell {
+	.nlf-faq-options-cell {
 		background: transparent;
 		padding: var(--spacing-3) 0;
 	}
@@ -584,20 +584,20 @@
 		--spacing-8: 1.5rem; /* Reduce gap on mobile */
 	}
 	
-	.aio-faq-admin__layout {
+	.nlf-faq-admin__layout {
 		gap: var(--spacing-4);
 		margin-top: var(--spacing-4);
 	}
 	
-	.aio-faq-admin__right {
+	.nlf-faq-admin__right {
 		padding: var(--spacing-4) var(--spacing-4) var(--spacing-4);
 	}
 	
-	.aio-faq-content-cell {
+	.nlf-faq-content-cell {
 		padding: var(--spacing-4) var(--spacing-3) 3rem var(--spacing-3);
 	}
 	
-	.aio-faq-options-group {
+	.nlf-faq-options-group {
 		gap: var(--spacing-3);
 	}
 }
