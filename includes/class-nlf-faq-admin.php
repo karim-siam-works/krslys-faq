@@ -606,8 +606,8 @@ class NLF_Faq_Admin {
 
 		check_admin_referer( 'nlf_faq_export', 'nlf_faq_export_nonce' );
 
-		$include_styles    = isset( $_POST['nlf_faq_include_styles'] );
-		$include_questions = isset( $_POST['nlf_faq_include_questions'] );
+		$include_styles    = self::get_checkbox_state_from_post( 'nlf_faq_include_styles' );
+		$include_questions = self::get_checkbox_state_from_post( 'nlf_faq_include_questions' );
 		$group_choice      = isset( $_POST['nlf_faq_export_group'] )
 			? sanitize_text_field( wp_unslash( $_POST['nlf_faq_export_group'] ) )
 			: 'all';
@@ -686,6 +686,7 @@ class NLF_Faq_Admin {
 		}
 
 		$file = $_FILES['nlf_faq_import_file'];
+		$filename = isset( $file['name'] ) ? sanitize_file_name( wp_unslash( $file['name'] ) ) : '';
 
 		if ( (int) $file['error'] !== UPLOAD_ERR_OK ) {
 			self::store_tools_notice( 'error', self::describe_upload_error( (int) $file['error'] ) );
@@ -701,6 +702,12 @@ class NLF_Faq_Admin {
 			exit;
 		}
 
+		if ( ! self::is_json_upload( $file['tmp_name'] ) ) {
+			self::store_tools_notice( 'error', __( 'Only JSON files exported by this plugin are allowed.', 'next-level-faq' ) );
+			wp_safe_redirect( $page_url );
+			exit;
+		}
+
 		$data = self::decode_import_file( $file['tmp_name'] );
 
 		if ( null === $data ) {
@@ -709,7 +716,7 @@ class NLF_Faq_Admin {
 			exit;
 		}
 
-		$replace_existing = isset( $_POST['nlf_faq_replace_existing'] ) ? (bool) wp_unslash( $_POST['nlf_faq_replace_existing'] ) : false;
+		$replace_existing = self::get_checkbox_state_from_post( 'nlf_faq_replace_existing' );
 		$imported_count   = 0;
 		$styles_applied   = false;
 
@@ -989,6 +996,73 @@ class NLF_Faq_Admin {
 		ksort( $grouped, SORT_NUMERIC );
 
 		return $grouped;
+	}
+
+	/**
+	 * Read a checkbox-like value from $_POST and normalize to bool.
+	 *
+	 * @param string $key Checkbox key.
+	 * @return bool
+	 */
+	private static function get_checkbox_state_from_post( $key ) {
+		if ( ! isset( $_POST[ $key ] ) ) {
+			return false;
+		}
+
+		$value = wp_unslash( $_POST[ $key ] );
+
+		if ( is_array( $value ) ) {
+			$value = reset( $value );
+		}
+
+		if ( null !== $value && false !== filter_var( $value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE ) ) {
+			return true === filter_var( $value, FILTER_VALIDATE_BOOLEAN );
+		}
+
+		return ! empty( $value );
+	}
+
+	/**
+	 * Ensure uploaded file is JSON.
+	 *
+	 * @param string $tmp_path Temporary path.
+	 * @return bool
+	 */
+	private static function is_json_upload( $tmp_path ) {
+		if ( empty( $tmp_path ) || ! is_readable( $tmp_path ) ) {
+			return false;
+		}
+
+		$allowed_mimes = array(
+			'application/json',
+			'text/json',
+			'text/plain',
+		);
+
+		if ( function_exists( 'finfo_open' ) ) {
+			$finfo = finfo_open( FILEINFO_MIME_TYPE );
+			if ( $finfo ) {
+				$mime = finfo_file( $finfo, $tmp_path );
+				finfo_close( $finfo );
+
+				if ( $mime && ! in_array( $mime, $allowed_mimes, true ) ) {
+					return false;
+				}
+			}
+		}
+
+		// Basic sanity check: ensure the file starts with `{` or `[` ignoring whitespace.
+		$handle = fopen( $tmp_path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+		if ( false === $handle ) {
+			return false;
+		}
+
+		$prefix = fread( $handle, 5 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fread
+		fclose( $handle );
+
+		$prefix = ltrim( (string) $prefix );
+
+		return '' !== $prefix && in_array( $prefix[0], array( '{', '[' ), true );
 	}
 
 	/**
