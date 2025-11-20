@@ -36,7 +36,9 @@ class AIO_Faq_Group_CPT {
 			'labels'             => $labels,
 			'public'             => false,
 			'show_ui'            => true,
-			'show_in_rest'       => false,
+			'show_in_rest'       => true,
+			'rest_base'          => 'aio-faq-groups',
+			'rest_controller_class' => 'WP_REST_Posts_Controller',
 			'show_in_nav_menus'  => false,
 			'show_in_admin_bar'  => false,
 			'show_in_menu'       => 'aio-faq',
@@ -98,7 +100,7 @@ class AIO_Faq_Group_CPT {
 		wp_enqueue_script(
 			'aio-faq-group-metabox',
 			AIO_FAQ_PLUGIN_URL . 'assets/js/admin-faq-group-metabox.js',
-			array( 'jquery', 'wp-editor' ),
+			array( 'jquery', 'jquery-ui-sortable', 'wp-editor' ),
 			AIO_FAQ_VERSION,
 			true
 		);
