@@ -92,13 +92,25 @@ class AIO_Faq_Admin {
 			AIO_FAQ_VERSION
 		);
 
-		wp_enqueue_script(
-			'aio-faq-admin',
-			AIO_FAQ_PLUGIN_URL . 'assets/js/admin-faq-style.js',
-			array( 'jquery' ),
-			AIO_FAQ_VERSION,
-			true
-		);
+		// Enqueue WordPress color picker for style page only.
+		if ( in_array( $page, array( self::STYLE_SLUG, self::TOP_MENU_SLUG ), true ) ) {
+			wp_enqueue_style( 'wp-color-picker' );
+			wp_enqueue_script(
+				'aio-faq-admin',
+				AIO_FAQ_PLUGIN_URL . 'assets/js/admin-faq-style.js',
+				array( 'jquery', 'wp-color-picker' ),
+				AIO_FAQ_VERSION,
+				true
+			);
+		} else {
+			wp_enqueue_script(
+				'aio-faq-admin',
+				AIO_FAQ_PLUGIN_URL . 'assets/js/admin-faq-style.js',
+				array( 'jquery' ),
+				AIO_FAQ_VERSION,
+				true
+			);
+		}
 
 		if ( self::QUESTIONS_SLUG === $page ) {
 			wp_enqueue_script(

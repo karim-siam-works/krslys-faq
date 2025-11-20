@@ -15,7 +15,7 @@
 			borderRadius: root.data('container-border-radius') + 'px',
 			padding: root.data('container-padding') + 'px',
 			boxShadow: root.data('shadow') === 1 || root.data('shadow') === '1'
-				? '0 10px 25px rgba(15,23,42,0.08)'
+				? '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)'
 				: 'none'
 		});
 
@@ -90,10 +90,33 @@
 	}
 
 	$(function () {
+		// Initialize WordPress color picker for all color fields.
+		if (typeof $.fn.wpColorPicker !== 'undefined') {
+			$('.aio-color-field').wpColorPicker({
+				change: function (event, ui) {
+					var $el = $(this);
+					var prop = $el.data('preview-prop');
+					var val = ui.color.toString();
+					updateDataProp(prop, val);
+				},
+				clear: function () {
+					var $el = $(this);
+					var prop = $el.data('preview-prop');
+					updateDataProp(prop, '');
+				}
+			});
+		}
+
 		applyPreviewFromData();
 
 		$('#aio-faq-style-form').on('input change', '[data-preview-prop]', function () {
 			var $el = $(this);
+			
+			// Skip color fields as they're handled by color picker callbacks.
+			if ($el.hasClass('aio-color-field')) {
+				return;
+			}
+
 			var prop = $el.data('preview-prop');
 			var val;
 
