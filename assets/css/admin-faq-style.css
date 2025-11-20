@@ -517,6 +517,93 @@
 }
 
 /* ============================================
+   Tools Page Layout
+   ============================================ */
+
+.nlf-faq-tools__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+	gap: var(--spacing-6);
+	margin-top: var(--spacing-5);
+}
+
+.nlf-faq-tools__card {
+	background: var(--color-white);
+	border: 1px solid var(--color-slate-200);
+	border-radius: var(--radius-lg);
+	padding: var(--spacing-6);
+	box-shadow: var(--shadow-md);
+	transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.nlf-faq-tools__card:hover {
+	box-shadow: var(--shadow-xl);
+	transform: translateY(-2px);
+}
+
+.nlf-faq-tools__card h2 {
+	margin-top: 0;
+	font-size: var(--font-size-xl);
+	font-weight: var(--font-weight-semibold);
+	color: var(--color-slate-800);
+	letter-spacing: var(--letter-spacing-tight);
+}
+
+.nlf-faq-tools__form {
+	margin-top: var(--spacing-4);
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-3);
+}
+
+.nlf-faq-tools__option {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-3);
+	font-size: var(--font-size-base);
+	color: var(--color-slate-700);
+}
+
+.nlf-faq-tools__option input[type="checkbox"] {
+	margin: 0;
+}
+
+.nlf-faq-tools__field-label {
+	font-weight: var(--font-weight-semibold);
+	color: var(--color-slate-800);
+}
+
+.nlf-faq-tools select,
+.nlf-faq-tools input[type="file"] {
+	max-width: 100%;
+	width: 100%;
+}
+
+.nlf-faq-tools select {
+	padding: var(--spacing-3);
+	border: 1px solid var(--color-slate-300);
+	border-radius: var(--radius-md);
+	font-size: var(--font-size-base);
+	color: var(--color-slate-800);
+	background: var(--color-white);
+}
+
+.nlf-faq-tools .description {
+	color: var(--color-slate-600);
+	margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+	.nlf-faq-tools__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.nlf-faq-tools__card {
+		padding: var(--spacing-5);
+	}
+}
+
+/* ============================================
    Responsive Design
    ============================================ */
 

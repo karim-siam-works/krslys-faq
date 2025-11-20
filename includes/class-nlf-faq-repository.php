@@ -83,6 +83,53 @@ class NLF_Faq_Repository {
 	}
 
 	/**
+	 * Retrieve FAQ records for export routines.
+	 *
+	 * @param int|null $group_id Optional group filter (null = all groups).
+	 * @return array[]
+	 */
+	public static function get_all_items_for_export( $group_id = null ) {
+		global $wpdb;
+
+		$table = self::get_table_name();
+
+		$where_sql = '';
+
+		if ( null !== $group_id ) {
+			$where_sql = $wpdb->prepare( 'WHERE group_id = %d', (int) $group_id );
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$rows = $wpdb->get_results(
+			"SELECT group_id, position, question, answer, status, icon, initial_state, category, highlight
+			FROM {$table} {$where_sql}
+			ORDER BY group_id ASC, position ASC, id ASC",
+			ARRAY_A
+		);
+
+		if ( empty( $rows ) ) {
+			return array();
+		}
+
+		return array_map(
+			static function ( $row ) {
+				return array(
+					'group_id'      => isset( $row['group_id'] ) ? (int) $row['group_id'] : 0,
+					'position'      => isset( $row['position'] ) ? (int) $row['position'] : 0,
+					'question'      => isset( $row['question'] ) ? (string) $row['question'] : '',
+					'answer'        => isset( $row['answer'] ) ? (string) $row['answer'] : '',
+					'status'        => isset( $row['status'] ) ? (int) $row['status'] : 0,
+					'icon'          => isset( $row['icon'] ) ? (string) $row['icon'] : '',
+					'initial_state' => isset( $row['initial_state'] ) ? (int) $row['initial_state'] : 0,
+					'category'      => isset( $row['category'] ) ? (string) $row['category'] : '',
+					'highlight'     => isset( $row['highlight'] ) ? (int) $row['highlight'] : 0,
+				);
+			},
+			$rows
+		);
+	}
+
+	/**
 	 * Get FAQ item by post ID.
 	 *
 	 * @param int $post_id Post ID.
@@ -311,6 +358,20 @@ class NLF_Faq_Repository {
 			array( 'group_id' => (int) $group_id ),
 			array( '%d' )
 		);
+	}
+
+	/**
+	 * Delete every FAQ record.
+	 *
+	 * @return void
+	 */
+	public static function delete_all_items() {
+		global $wpdb;
+
+		$table = self::get_table_name();
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( "DELETE FROM {$table}" );
 	}
 }
 

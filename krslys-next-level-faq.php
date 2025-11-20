@@ -80,6 +80,8 @@ final class NLF_Faq_Plugin {
 		add_action( 'admin_init', array( 'NLF_Faq_Admin', 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( 'NLF_Faq_Admin', 'enqueue_assets' ) );
 		add_action( 'admin_post_nlf_faq_save_questions', array( 'NLF_Faq_Admin', 'handle_save_questions' ) );
+		add_action( 'admin_post_nlf_faq_export', array( 'NLF_Faq_Admin', 'handle_export' ) );
+		add_action( 'admin_post_nlf_faq_import', array( 'NLF_Faq_Admin', 'handle_import' ) );
 		add_action( 'update_option_' . NLF_Faq_Options::OPTION_KEY, array( 'NLF_Faq_Style_Generator', 'generate_and_save' ), 10, 2 );
 
 		// Gutenberg block registration using block.json and dynamic render.
