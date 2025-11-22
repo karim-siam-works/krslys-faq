@@ -97,17 +97,14 @@ class NLF_Faq_Admin {
 	 *
 	 * @param string $hook_suffix Current screen hook.
 	 */
-	public static function enqueue_assets( $hook_suffix ) {
-		// SECURITY: Check if page parameter exists before accessing.
-		if ( ! isset( $_GET['page'] ) ) {
-			return;
-		}
+public static function enqueue_assets( $hook_suffix ) {
+	if ( ! isset( $_GET['page'] ) ) {
+		return;
+	}
 
-		// SECURITY: Sanitize the page parameter from GET request.
-		$page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
+	$page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
 
-		// SECURITY: Allowlist of valid pages.
-		$allowed_pages = array(
+	$allowed_pages = array(
 			self::STYLE_SLUG,
 			self::QUESTIONS_SLUG,
 			self::TOP_MENU_SLUG,
@@ -570,19 +567,16 @@ class NLF_Faq_Admin {
 	 * - Nonce verification: wp_verify_nonce().
 	 * - Input sanitization: sanitize_text_field(), wp_kses_post().
 	 */
-	public static function handle_save_questions() {
-		// SECURITY: Check user capability first.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage FAQs.', 'next-level-faq' ) );
-		}
+public static function handle_save_questions() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You do not have permission to manage FAQs.', 'next-level-faq' ) );
+	}
 
-		// SECURITY: Verify nonce for CSRF protection.
-		if ( ! isset( $_POST['nlf_faq_questions_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nlf_faq_questions_nonce'] ) ), 'nlf_faq_save_questions' ) ) {
-			wp_die( esc_html__( 'Security check failed.', 'next-level-faq' ) );
-		}
+	if ( ! isset( $_POST['nlf_faq_questions_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nlf_faq_questions_nonce'] ) ), 'nlf_faq_save_questions' ) ) {
+		wp_die( esc_html__( 'Security check failed.', 'next-level-faq' ) );
+	}
 
-		// SECURITY: Sanitize all POST data before use.
-		$ids       = isset( $_POST['nlf_faq_id'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_id'] ) ) : array();
+	$ids       = isset( $_POST['nlf_faq_id'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_id'] ) ) : array();
 		$questions = isset( $_POST['nlf_faq_question'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_question'] ) ) : array();
 		$answers   = isset( $_POST['nlf_faq_answer'] ) ? array_map( 'wp_kses_post', wp_unslash( (array) $_POST['nlf_faq_answer'] ) ) : array();
 		$active    = isset( $_POST['nlf_faq_active'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_active'] ) ) : array();
@@ -630,14 +624,12 @@ class NLF_Faq_Admin {
 	 *
 	 * @return void
 	 */
-	public static function handle_export() {
-		// SECURITY: Check user capability.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to export FAQs.', 'next-level-faq' ) );
-		}
+public static function handle_export() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You do not have permission to export FAQs.', 'next-level-faq' ) );
+	}
 
-		// SECURITY: Verify nonce for CSRF protection.
-		check_admin_referer( 'nlf_faq_export', 'nlf_faq_export_nonce' );
+	check_admin_referer( 'nlf_faq_export', 'nlf_faq_export_nonce' );
 
 		$include_styles    = self::get_checkbox_state_from_post( 'nlf_faq_include_styles' );
 		$include_questions = self::get_checkbox_state_from_post( 'nlf_faq_include_questions' );
@@ -671,30 +663,27 @@ class NLF_Faq_Admin {
 			$payload['meta']['group_scope_label'] = self::get_group_label( $group_scope );
 			$payload['faqs']                      = self::group_faq_export_items(
 				NLF_Faq_Repository::get_all_items_for_export( $group_scope )
-			);
-		}
+		);
+	}
 
-		// SECURITY: Clear all output buffers to prevent HTML injection.
-		while ( ob_get_level() > 0 ) {
-			ob_end_clean();
-		}
+	while ( ob_get_level() > 0 ) {
+		ob_end_clean();
+	}
 
-		$filename_parts = array( 'next-level-faq-export' );
+	$filename_parts = array( 'next-level-faq-export' );
 
-		if ( $include_questions && null !== $group_scope ) {
-			$filename_parts[] = 'group-' . (int) $group_scope;
-		}
+	if ( $include_questions && null !== $group_scope ) {
+		$filename_parts[] = 'group-' . (int) $group_scope;
+	}
 
-		// SECURITY: Sanitize filename for safe download.
-		$filename = sanitize_file_name( implode( '-', $filename_parts ) . '-' . gmdate( 'Ymd-His' ) . '.json' );
+	$filename = sanitize_file_name( implode( '-', $filename_parts ) . '-' . gmdate( 'Ymd-His' ) . '.json' );
 
 		nocache_headers();
 		header( 'Content-Type: application/json; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
-		header( 'X-Export-Context: context7' );
+	header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+	header( 'X-Export-Context: context7' );
 
-		// SECURITY: wp_json_encode handles proper encoding and prevents XSS.
-		echo wp_json_encode(
+	echo wp_json_encode(
 			$payload,
 			JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
 		);
@@ -712,53 +701,45 @@ class NLF_Faq_Admin {
 	 *
 	 * @return void
 	 */
-	public static function handle_import() {
-		// SECURITY: Check user capability.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to import FAQs.', 'next-level-faq' ) );
-		}
+public static function handle_import() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You do not have permission to import FAQs.', 'next-level-faq' ) );
+	}
 
-		// SECURITY: Verify nonce for CSRF protection.
-		check_admin_referer( 'nlf_faq_import', 'nlf_faq_import_nonce' );
+	check_admin_referer( 'nlf_faq_import', 'nlf_faq_import_nonce' );
 
-		$page_url = self::get_tools_page_url();
+	$page_url = self::get_tools_page_url();
 
-		// SECURITY: Check if file upload exists.
-		if ( empty( $_FILES['nlf_faq_import_file'] ) || empty( $_FILES['nlf_faq_import_file']['tmp_name'] ) ) {
+	if ( empty( $_FILES['nlf_faq_import_file'] ) || empty( $_FILES['nlf_faq_import_file']['tmp_name'] ) ) {
 			self::store_tools_notice( 'error', __( 'Upload a Context7 export file before running import.', 'next-level-faq' ) );
 			wp_safe_redirect( $page_url );
-			exit;
-		}
+		exit;
+	}
 
-		// SECURITY: Validate file upload.
-		$file     = $_FILES['nlf_faq_import_file'];
-		$filename = isset( $file['name'] ) ? sanitize_file_name( wp_unslash( $file['name'] ) ) : '';
+	$file     = $_FILES['nlf_faq_import_file'];
+	$filename = isset( $file['name'] ) ? sanitize_file_name( wp_unslash( $file['name'] ) ) : '';
 
-		// SECURITY: Check for upload errors.
-		if ( isset( $file['error'] ) && (int) $file['error'] !== UPLOAD_ERR_OK ) {
+	if ( isset( $file['error'] ) && (int) $file['error'] !== UPLOAD_ERR_OK ) {
 			self::store_tools_notice( 'error', self::describe_upload_error( (int) $file['error'] ) );
 			wp_safe_redirect( $page_url );
-			exit;
-		}
+		exit;
+	}
 
-		// SECURITY: Validate file size (2MB limit).
-		$size_limit = defined( 'MB_IN_BYTES' ) ? 2 * MB_IN_BYTES : 2 * 1024 * 1024;
+	$size_limit = defined( 'MB_IN_BYTES' ) ? 2 * MB_IN_BYTES : 2 * 1024 * 1024;
 
 		if ( isset( $file['size'] ) && (int) $file['size'] > $size_limit ) {
 			self::store_tools_notice( 'error', __( 'Import file is too large. Please keep exports under 2MB.', 'next-level-faq' ) );
 			wp_safe_redirect( $page_url );
-			exit;
-		}
+		exit;
+	}
 
-		// SECURITY: Validate file is JSON (comprehensive checks).
-		if ( ! self::is_valid_json_upload( $file ) ) {
+	if ( ! self::is_valid_json_upload( $file ) ) {
 			self::store_tools_notice( 'error', __( 'Only JSON files exported by this plugin are allowed.', 'next-level-faq' ) );
 			wp_safe_redirect( $page_url );
-			exit;
-		}
+		exit;
+	}
 
-		// SECURITY: Decode and validate JSON structure.
-		$data = self::decode_import_file( $file['tmp_name'] );
+	$data = self::decode_import_file( $file['tmp_name'] );
 
 		if ( null === $data ) {
 			self::store_tools_notice( 'error', __( 'The uploaded file is not a valid Context7 export.', 'next-level-faq' ) );
@@ -777,12 +758,11 @@ class NLF_Faq_Admin {
 			}
 
 			foreach ( $faq_entries as $index => $item ) {
-				if ( ! is_array( $item ) ) {
-					continue;
-				}
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
 
-				// SECURITY: Type-cast and sanitize all imported values.
-				$question = isset( $item['question'] ) ? (string) $item['question'] : '';
+			$question = isset( $item['question'] ) ? (string) $item['question'] : '';
 				$answer   = isset( $item['answer'] ) ? (string) $item['answer'] : '';
 
 				$trimmed_question = trim( wp_strip_all_tags( $question ) );
@@ -811,11 +791,10 @@ class NLF_Faq_Admin {
 
 				$imported_count++;
 			}
-		}
+	}
 
-		if ( isset( $data['styles'] ) && is_array( $data['styles'] ) ) {
-			// SECURITY: Sanitize styles through NLF_Faq_Options::sanitize().
-			$sanitized = NLF_Faq_Options::sanitize( $data['styles'] );
+	if ( isset( $data['styles'] ) && is_array( $data['styles'] ) ) {
+		$sanitized = NLF_Faq_Options::sanitize( $data['styles'] );
 			update_option( NLF_Faq_Options::OPTION_KEY, $sanitized );
 			$styles_applied = true;
 		}
@@ -855,9 +834,8 @@ class NLF_Faq_Admin {
 	 *
 	 * @return void
 	 */
-	private static function store_tools_notice( $type, $message ) {
-		// SECURITY: Validate notice type against allowlist.
-		$allowed = array( 'success', 'error', 'warning', 'info' );
+private static function store_tools_notice( $type, $message ) {
+	$allowed = array( 'success', 'error', 'warning', 'info' );
 		$type    = in_array( $type, $allowed, true ) ? $type : 'info';
 
 		set_transient(
@@ -1117,19 +1095,17 @@ class NLF_Faq_Admin {
 	 */
 	private static function is_valid_json_upload( $file ) {
 		if ( empty( $file['tmp_name'] ) || ! is_readable( $file['tmp_name'] ) ) {
-			return false;
-		}
+		return false;
+	}
 
-		// SECURITY: Validate file extension against allowlist.
-		$filename = isset( $file['name'] ) ? sanitize_file_name( wp_unslash( $file['name'] ) ) : '';
+	$filename = isset( $file['name'] ) ? sanitize_file_name( wp_unslash( $file['name'] ) ) : '';
 		$ext      = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
 
 		if ( 'json' !== $ext ) {
-			return false;
-		}
+		return false;
+	}
 
-		// SECURITY: Validate MIME type using finfo (most reliable method).
-		$allowed_mimes = array(
+	$allowed_mimes = array(
 			'application/json',
 			'text/json',
 			'text/plain', // Some servers report JSON as text/plain.
@@ -1144,11 +1120,10 @@ class NLF_Faq_Admin {
 				if ( $mime && ! in_array( $mime, $allowed_mimes, true ) ) {
 					return false;
 				}
-			}
 		}
+	}
 
-		// SECURITY: Validate file content structure using WP_Filesystem API.
-		global $wp_filesystem;
+	global $wp_filesystem;
 
 		if ( ! function_exists( 'WP_Filesystem' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -1167,11 +1142,10 @@ class NLF_Faq_Admin {
 			return false;
 		}
 
-		// Get first 10 characters after trimming whitespace.
-		$prefix = ltrim( substr( $prefix, 0, 10 ) );
+	// Get first 10 characters after trimming whitespace.
+	$prefix = ltrim( substr( $prefix, 0, 10 ) );
 
-		// SECURITY: Ensure file starts with { or [ (valid JSON).
-		return '' !== $prefix && in_array( $prefix[0], array( '{', '[' ), true );
+	return '' !== $prefix && in_array( $prefix[0], array( '{', '[' ), true );
 	}
 
 	/**

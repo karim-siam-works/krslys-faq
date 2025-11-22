@@ -29,11 +29,10 @@ class NLF_Faq_Frontend {
 		$css_path = NLF_Faq_Style_Generator::get_css_file_path();
 		$css_url  = NLF_Faq_Style_Generator::get_css_file_url();
 
-		$uploads = wp_upload_dir();
-		$baseurl = isset( $uploads['baseurl'] ) ? trailingslashit( $uploads['baseurl'] ) : '';
+	$uploads = wp_upload_dir();
+	$baseurl = isset( $uploads['baseurl'] ) ? trailingslashit( $uploads['baseurl'] ) : '';
 
-		// SECURITY: Validate that CSS URL is within uploads directory.
-		if ( $css_url && $css_path && file_exists( $css_path ) && $baseurl && 0 === strpos( $css_url, $baseurl ) ) {
+	if ( $css_url && $css_path && file_exists( $css_path ) && $baseurl && 0 === strpos( $css_url, $baseurl ) ) {
 			wp_enqueue_style(
 				'nlf-faq-generated',
 				esc_url_raw( $css_url ),
@@ -64,9 +63,8 @@ class NLF_Faq_Frontend {
 	 *
 	 * @return string
 	 */
-	public static function render_shortcode( $atts, $content = '' ) {
-		// SECURITY: Sanitize all shortcode attributes.
-		$atts = self::sanitize_shortcode_atts(
+public static function render_shortcode( $atts, $content = '' ) {
+	$atts = self::sanitize_shortcode_atts(
 			shortcode_atts(
 				array(
 					'title'      => __( 'Frequently Asked Questions', 'next-level-faq' ),
@@ -78,10 +76,9 @@ class NLF_Faq_Frontend {
 			)
 		);
 
-		$group_id = $atts['group'];
+	$group_id = $atts['group'];
 
-		// SECURITY: Lookup group by slug if provided (sanitized in sanitize_shortcode_atts).
-		if ( 0 === $group_id && '' !== $atts['group_slug'] ) {
+	if ( 0 === $group_id && '' !== $atts['group_slug'] ) {
 			$group_post = get_page_by_path( $atts['group_slug'], OBJECT, 'nlf_faq_group' );
 			if ( $group_post instanceof WP_Post ) {
 				$group_id = (int) $group_post->ID;
@@ -102,10 +99,9 @@ class NLF_Faq_Frontend {
 			<?php endif; ?>
 
 			<?php if ( ! empty( $items ) ) : ?>
-				<?php foreach ( $items as $index => $item ) : ?>
-					<?php
-					// SECURITY: Type-cast all values from database.
-					$is_open   = isset( $item->initial_state ) ? ( 1 === (int) $item->initial_state ) : ( 0 === (int) $index );
+			<?php foreach ( $items as $index => $item ) : ?>
+				<?php
+				$is_open   = isset( $item->initial_state ) ? ( 1 === (int) $item->initial_state ) : ( 0 === (int) $index );
 					$is_active = isset( $item->highlight ) ? ( 1 === (int) $item->highlight ) : false;
 					$item_class = array();
 
@@ -121,10 +117,9 @@ class NLF_Faq_Frontend {
 							<span><?php echo esc_html( (string) $item->question ); ?></span>
 							<span class="nlf-faq__icon" aria-hidden="true"></span>
 						</div>
-						<div class="nlf-faq__answer">
-							<?php
-							// SECURITY: wp_kses_post allows safe HTML, wpautop adds paragraphs.
-							echo wp_kses_post( wpautop( (string) $item->answer ) );
+					<div class="nlf-faq__answer">
+						<?php
+						echo wp_kses_post( wpautop( (string) $item->answer ) );
 							?>
 						</div>
 					</div>

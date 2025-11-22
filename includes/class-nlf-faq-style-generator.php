@@ -346,11 +346,10 @@ class NLF_Faq_Style_Generator {
 		$path    = self::get_css_file_path();
 
 		if ( ! $path ) {
-			return false;
-		}
+		return false;
+	}
 
-		// SECURITY: Initialize WordPress Filesystem API.
-		if ( ! function_exists( 'WP_Filesystem' ) ) {
+	if ( ! function_exists( 'WP_Filesystem' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
 
@@ -369,27 +368,24 @@ class NLF_Faq_Style_Generator {
 		global $wp_filesystem;
 
 		if ( ! $wp_filesystem ) {
-			return false;
-		}
+		return false;
+	}
 
-		// SECURITY: Ensure directory exists and is writable.
-		$dir = dirname( $path );
+	$dir = dirname( $path );
 
 		if ( ! $wp_filesystem->is_dir( $dir ) ) {
 			if ( ! wp_mkdir_p( $dir ) ) {
 				return false;
-			}
 		}
+	}
 
-		// SECURITY: Convert absolute path to WP_Filesystem compatible path.
-		$wp_path = $path;
+	$wp_path = $path;
 
 		if ( defined( 'FTP_BASE' ) ) {
-			$wp_path = str_replace( ABSPATH, trailingslashit( FTP_BASE ), $path );
-		}
+		$wp_path = str_replace( ABSPATH, trailingslashit( FTP_BASE ), $path );
+	}
 
-		// SECURITY: Write CSS content using WP_Filesystem.
-		$result = $wp_filesystem->put_contents(
+	$result = $wp_filesystem->put_contents(
 			$wp_path,
 			$css,
 			FS_CHMOD_FILE

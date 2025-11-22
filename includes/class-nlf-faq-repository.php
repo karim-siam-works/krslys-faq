@@ -320,20 +320,17 @@ class NLF_Faq_Repository {
 			}
 		);
 
-		if ( empty( $keep_ids ) ) {
-			// Delete everything for this group.
-			// SECURITY: Uses $wpdb->prepare() for group_id.
-			$wpdb->query(
+	if ( empty( $keep_ids ) ) {
+		$wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$table} WHERE group_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
 					(int) $group_id
 				)
 			);
-			return;
-		}
+		return;
+	}
 
-		// SECURITY: Create placeholders for each ID, then use prepare().
-		$placeholders = implode( ',', array_fill( 0, count( $keep_ids ), '%d' ) );
+	$placeholders = implode( ',', array_fill( 0, count( $keep_ids ), '%d' ) );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, placeholders are safe.
 		$wpdb->query(
@@ -357,10 +354,9 @@ class NLF_Faq_Repository {
 	public static function get_items_for_group( $group_id, $only_visible = true ) {
 		global $wpdb;
 
-		$table = self::get_table_name();
+	$table = self::get_table_name();
 
-		// SECURITY: Visible clause is static SQL, not user input.
-		$visible_clause = $only_visible ? 'AND status = 1' : '';
+	$visible_clause = $only_visible ? 'AND status = 1' : '';
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and visible_clause are safe.
 		$sql = $wpdb->prepare(
@@ -402,11 +398,10 @@ class NLF_Faq_Repository {
 	public static function delete_all_items() {
 		global $wpdb;
 
-		$table = self::get_table_name();
+	$table = self::get_table_name();
 
-		// SECURITY: TRUNCATE is safe here as table name is from get_table_name() which uses $wpdb->prefix.
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input.
-		$wpdb->query( "TRUNCATE TABLE {$table}" );
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input.
+	$wpdb->query( "TRUNCATE TABLE {$table}" );
 	}
 
 	/**
@@ -420,30 +415,26 @@ class NLF_Faq_Repository {
 	 * @param string $table Table name.
 	 * @return void
 	 */
-	private static function maybe_drop_legacy_columns( $table ) {
-		global $wpdb;
+private static function maybe_drop_legacy_columns( $table ) {
+	global $wpdb;
 
-		// SECURITY: SHOW COLUMNS is safe as table name is from get_table_name().
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
-		$columns = $wpdb->get_results( "SHOW COLUMNS FROM {$table}", ARRAY_A );
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
+	$columns = $wpdb->get_results( "SHOW COLUMNS FROM {$table}", ARRAY_A );
 
 		if ( empty( $columns ) ) {
 			return;
 		}
 
-		$existing = wp_list_pluck( $columns, 'Field' );
+	$existing = wp_list_pluck( $columns, 'Field' );
 
-		// SECURITY: Allowlist of columns that can be dropped.
-		$drop_allowlist = array(
+	$drop_allowlist = array(
 			'icon',
 			'category',
 		);
 
-		foreach ( $drop_allowlist as $column ) {
-			// SECURITY: Only drop if column name is in allowlist and exists.
-			if ( in_array( $column, $existing, true ) ) {
-				// SECURITY: Escape column name using esc_sql() for identifier safety.
-				$safe_column = esc_sql( $column );
+	foreach ( $drop_allowlist as $column ) {
+		if ( in_array( $column, $existing, true ) ) {
+			$safe_column = esc_sql( $column );
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and column names are safe.
 				$wpdb->query( "ALTER TABLE {$table} DROP COLUMN {$safe_column}" );
 			}

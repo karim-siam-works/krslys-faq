@@ -75,9 +75,8 @@ class NLF_Faq_CPT {
 	 *
 	 * @param WP_Post $post Post object.
 	 */
-	public static function render_metabox( $post ) {
-		// SECURITY: Add nonce field for CSRF protection.
-		wp_nonce_field( 'nlf_faq_save', 'nlf_faq_nonce' );
+public static function render_metabox( $post ) {
+	wp_nonce_field( 'nlf_faq_save', 'nlf_faq_nonce' );
 
 		$faq_item = NLF_Faq_Repository::get_faq_by_post_id( $post->ID );
 
@@ -129,29 +128,24 @@ class NLF_Faq_CPT {
 	 * @param int     $post_id Post ID.
 	 * @param WP_Post $post    Post object.
 	 */
-	public static function save_metabox( $post_id, $post ) {
-		// SECURITY: Verify nonce for CSRF protection.
-		if ( ! isset( $_POST['nlf_faq_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nlf_faq_nonce'] ) ), 'nlf_faq_save' ) ) {
-			return;
-		}
+public static function save_metabox( $post_id, $post ) {
+	if ( ! isset( $_POST['nlf_faq_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nlf_faq_nonce'] ) ), 'nlf_faq_save' ) ) {
+		return;
+	}
 
-		// SECURITY: Don't save during autosave.
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return;
-		}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
 
-		// SECURITY: Verify post type.
-		if ( self::POST_TYPE !== $post->post_type ) {
-			return;
-		}
+	if ( self::POST_TYPE !== $post->post_type ) {
+		return;
+	}
 
-		// SECURITY: Check user capability.
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
-			return;
-		}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
 
-		// SECURITY: Sanitize all input data.
-		$question = isset( $_POST['nlf_faq_question'] ) ? sanitize_text_field( wp_unslash( $_POST['nlf_faq_question'] ) ) : '';
+	$question = isset( $_POST['nlf_faq_question'] ) ? sanitize_text_field( wp_unslash( $_POST['nlf_faq_question'] ) ) : '';
 		$answer   = isset( $_POST['nlf_faq_answer'] ) ? wp_kses_post( wp_unslash( $_POST['nlf_faq_answer'] ) ) : '';
 
 		// Keep post title in sync with question for easier admin browsing.
@@ -180,11 +174,10 @@ class NLF_Faq_CPT {
 	 *
 	 * @param int $post_id Post ID.
 	 */
-	public static function handle_delete( $post_id ) {
-		$post = get_post( $post_id );
+public static function handle_delete( $post_id ) {
+	$post = get_post( $post_id );
 
-		// SECURITY: Verify post type before deleting data.
-		if ( ! $post || self::POST_TYPE !== $post->post_type ) {
+	if ( ! $post || self::POST_TYPE !== $post->post_type ) {
 			return;
 		}
 
@@ -226,10 +219,9 @@ class NLF_Faq_CPT {
 		$plain = wp_strip_all_tags( $item->answer );
 
 		if ( strlen( $plain ) > 120 ) {
-			$plain = substr( $plain, 0, 117 ) . '…';
-		}
+		$plain = substr( $plain, 0, 117 ) . '…';
+	}
 
-		// SECURITY: Escape output.
-		echo esc_html( $plain );
+	echo esc_html( $plain );
 	}
 }

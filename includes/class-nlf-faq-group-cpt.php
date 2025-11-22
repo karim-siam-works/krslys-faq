@@ -82,16 +82,14 @@ class NLF_Faq_Group_CPT {
 	 *
 	 * @param string $hook_suffix Hook suffix.
 	 */
-	public static function enqueue_admin_assets( $hook_suffix ) {
-		// SECURITY: Only load on post editor screens.
-		if ( ! in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) ) {
-			return;
-		}
+public static function enqueue_admin_assets( $hook_suffix ) {
+	if ( ! in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) ) {
+		return;
+	}
 
-		$screen = get_current_screen();
+	$screen = get_current_screen();
 
-		// SECURITY: Verify we're on the correct post type.
-		if ( ! $screen || self::POST_TYPE !== $screen->post_type ) {
+	if ( ! $screen || self::POST_TYPE !== $screen->post_type ) {
 			return;
 		}
 
@@ -123,9 +121,8 @@ class NLF_Faq_Group_CPT {
 	 *
 	 * @param WP_Post $post Post object.
 	 */
-	public static function render_metabox( $post ) {
-		// SECURITY: Add nonce field for CSRF protection.
-		wp_nonce_field( 'nlf_faq_group_save', 'nlf_faq_group_nonce' );
+public static function render_metabox( $post ) {
+	wp_nonce_field( 'nlf_faq_group_save', 'nlf_faq_group_nonce' );
 
 		$items = NLF_Faq_Repository::get_items_for_group( $post->ID, false );
 		?>
@@ -265,29 +262,24 @@ class NLF_Faq_Group_CPT {
 	 * @param int     $post_id Post ID.
 	 * @param WP_Post $post    Post object.
 	 */
-	public static function save_metabox( $post_id, $post ) {
-		// SECURITY: Verify nonce for CSRF protection.
-		if ( ! isset( $_POST['nlf_faq_group_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nlf_faq_group_nonce'] ) ), 'nlf_faq_group_save' ) ) {
-			return; 
-		}
+public static function save_metabox( $post_id, $post ) {
+	if ( ! isset( $_POST['nlf_faq_group_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nlf_faq_group_nonce'] ) ), 'nlf_faq_group_save' ) ) {
+		return; 
+	}
 
-		// SECURITY: Don't save during autosave.
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return;
-		}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
 
-		// SECURITY: Verify post type.
-		if ( self::POST_TYPE !== $post->post_type ) {
-			return;
-		}
+	if ( self::POST_TYPE !== $post->post_type ) {
+		return;
+	}
 
-		// SECURITY: Check user capability.
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
-			return;
-		}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
 
-		// SECURITY: Sanitize all POST data before processing.
-		$ids       = isset( $_POST['nlf_faq_group_item_id'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_group_item_id'] ) ) : array();
+	$ids       = isset( $_POST['nlf_faq_group_item_id'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_group_item_id'] ) ) : array();
 		$questions = isset( $_POST['nlf_faq_group_question'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_group_question'] ) ) : array();
 		$answers   = isset( $_POST['nlf_faq_group_answer'] ) ? array_map( 'wp_kses_post', wp_unslash( (array) $_POST['nlf_faq_group_answer'] ) ) : array();
 		$visible   = isset( $_POST['nlf_faq_group_visible'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_group_visible'] ) ) : array();
@@ -316,7 +308,6 @@ class NLF_Faq_Group_CPT {
 			$keep_ids[] = $new_id;
 		}
 
-		// Delete items not in the keep list.
 		NLF_Faq_Repository::delete_all_except( $keep_ids, $post_id );
 	}
 
@@ -327,11 +318,10 @@ class NLF_Faq_Group_CPT {
 	 *
 	 * @param int $post_id Post ID.
 	 */
-	public static function handle_delete( $post_id ) {
-		$post = get_post( $post_id );
+public static function handle_delete( $post_id ) {
+	$post = get_post( $post_id );
 
-		// SECURITY: Verify post type before deleting related data.
-		if ( ! $post || self::POST_TYPE !== $post->post_type ) {
+	if ( ! $post || self::POST_TYPE !== $post->post_type ) {
 			return;
 		}
 
