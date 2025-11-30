@@ -79,23 +79,67 @@ class Autoloader {
 	/**
 	 * Convert class name to file name following WordPress conventions.
 	 *
-	 * Converts CamelCase to kebab-case with 'class-nlf-faq-' prefix.
+	 * Maps class names to subdirectories and files based on naming patterns:
+	 * - Admin_* classes -> admin/class-*.php
+	 * - Frontend_* classes -> frontend/class-*.php
+	 * - Core classes (Options, Repository, Style_Generator) -> core/class-*.php
+	 * - *_CPT classes -> admin/class-*.php
+	 *
 	 * Examples:
-	 *   Options -> class-nlf-faq-options.php
-	 *   Style_Generator -> class-nlf-faq-style-generator.php
-	 *   Group_CPT -> class-nlf-faq-group-cpt.php
+	 *   Options -> core/class-options.php
+	 *   Style_Generator -> core/class-style-generator.php
+	 *   Admin_Settings -> admin/class-admin-settings.php
+	 *   Group_CPT -> admin/class-group-cpt.php
+	 *   Frontend_Renderer -> frontend/class-frontend-renderer.php
 	 *
 	 * @param string $class_name The class name.
 	 *
-	 * @return string The file name.
+	 * @return string The file path relative to base directory.
 	 */
 	private function get_file_name_from_class( $class_name ) {
 		// Convert underscores to hyphens and lowercase.
 		$file_name = str_replace( '_', '-', $class_name );
 		$file_name = strtolower( $file_name );
-
-		// Add WordPress-style prefix and extension.
-		return 'class-nlf-faq-' . $file_name . '.php';
+		
+		// Add class prefix and extension.
+		$file_name = 'class-' . $file_name . '.php';
+		
+		// Determine subdirectory based on class name pattern.
+		$subdirectory = $this->get_subdirectory_for_class( $class_name );
+		
+		if ( $subdirectory ) {
+			return $subdirectory . '/' . $file_name;
+		}
+		
+		return $file_name;
+	}
+	
+	/**
+	 * Determine the subdirectory for a class based on naming patterns.
+	 *
+	 * @param string $class_name The class name.
+	 *
+	 * @return string The subdirectory name (without trailing slash) or empty string.
+	 */
+	private function get_subdirectory_for_class( $class_name ) {
+		// Admin classes: Admin_* or *_CPT.
+		if ( strpos( $class_name, 'Admin_' ) === 0 || strpos( $class_name, '_CPT' ) !== false ) {
+			return 'admin';
+		}
+		
+		// Frontend classes: Frontend_*.
+		if ( strpos( $class_name, 'Frontend_' ) === 0 ) {
+			return 'frontend';
+		}
+		
+		// Core classes: Options, Repository, Style_Generator.
+		$core_classes = array( 'Options', 'Repository', 'Style_Generator' );
+		if ( in_array( $class_name, $core_classes, true ) ) {
+			return 'core';
+		}
+		
+		// Default: no subdirectory (for backwards compatibility).
+		return '';
 	}
 }
 

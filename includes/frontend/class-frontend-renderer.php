@@ -21,7 +21,7 @@ use WP_Post;
  * - All output properly escaped.
  * - No direct user input accepted without validation.
  */
-class Frontend {
+class Frontend_Renderer {
 
 	/**
 	 * Register shortcodes.

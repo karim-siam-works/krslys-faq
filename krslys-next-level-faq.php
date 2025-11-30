@@ -80,14 +80,14 @@ final class Plugin {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		add_action( 'plugins_loaded', array( '\Krslys\NextLevelFaq\Repository', 'maybe_create_table' ) );
 		add_action( 'init', array( '\Krslys\NextLevelFaq\Group_CPT', 'register' ) );
-		add_action( 'init', array( '\Krslys\NextLevelFaq\Frontend', 'register_shortcodes' ) );
-		add_action( 'wp_enqueue_scripts', array( '\Krslys\NextLevelFaq\Frontend', 'enqueue_styles' ) );
-		add_action( 'admin_menu', array( '\Krslys\NextLevelFaq\Admin', 'register_menu' ) );
-		add_action( 'admin_init', array( '\Krslys\NextLevelFaq\Admin', 'register_settings' ) );
-		add_action( 'admin_enqueue_scripts', array( '\Krslys\NextLevelFaq\Admin', 'enqueue_assets' ) );
-		add_action( 'admin_post_nlf_faq_save_questions', array( '\Krslys\NextLevelFaq\Admin', 'handle_save_questions' ) );
-		add_action( 'admin_post_nlf_faq_export', array( '\Krslys\NextLevelFaq\Admin', 'handle_export' ) );
-		add_action( 'admin_post_nlf_faq_import', array( '\Krslys\NextLevelFaq\Admin', 'handle_import' ) );
+		add_action( 'init', array( '\Krslys\NextLevelFaq\Frontend_Renderer', 'register_shortcodes' ) );
+		add_action( 'wp_enqueue_scripts', array( '\Krslys\NextLevelFaq\Frontend_Renderer', 'enqueue_styles' ) );
+		add_action( 'admin_menu', array( '\Krslys\NextLevelFaq\Admin_Settings', 'register_menu' ) );
+		add_action( 'admin_init', array( '\Krslys\NextLevelFaq\Admin_Settings', 'register_settings' ) );
+		add_action( 'admin_enqueue_scripts', array( '\Krslys\NextLevelFaq\Admin_Settings', 'enqueue_assets' ) );
+		add_action( 'admin_post_nlf_faq_save_questions', array( '\Krslys\NextLevelFaq\Admin_Settings', 'handle_save_questions' ) );
+		add_action( 'admin_post_nlf_faq_export', array( '\Krslys\NextLevelFaq\Admin_Settings', 'handle_export' ) );
+		add_action( 'admin_post_nlf_faq_import', array( '\Krslys\NextLevelFaq\Admin_Settings', 'handle_import' ) );
 		add_action( 'update_option_' . Options::OPTION_KEY, array( '\Krslys\NextLevelFaq\Style_Generator', 'generate_and_save' ), 10, 2 );
 
 		// Gutenberg block registration using block.json and dynamic render.

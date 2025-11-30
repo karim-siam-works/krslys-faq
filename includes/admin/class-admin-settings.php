@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - All inputs sanitized, all outputs escaped.
  * - Uses WordPress Filesystem API for file operations.
  */
-class Admin {
+class Admin_Settings {
 
 	/**
 	 * Top-level menu slug.

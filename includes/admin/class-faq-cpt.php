@@ -22,7 +22,7 @@ use WP_Post;
  * - Input sanitization via sanitize_text_field() and wp_kses_post().
  * - Output escaping via esc_attr(), esc_html(), esc_textarea().
  */
-class CPT {
+class FAQ_CPT {
 
 	/**
 	 * Post type slug.
