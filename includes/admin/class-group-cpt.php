@@ -172,55 +172,78 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 		?>
 
 		<div class="nlf-faq-group-tabs-wrapper">
-			<!-- Tab Navigation -->
-			<div class="nlf-faq-tabs-nav">
-				<button type="button" class="nlf-faq-tab-button active" data-tab="faq-items">
-					<span class="dashicons dashicons-list-view"></span>
-					<?php esc_html_e( 'FAQ Items', 'next-level-faq' ); ?>
+			<!-- Tab Navigation with ARIA -->
+			<div class="nlf-faq-tabs-nav" role="tablist" aria-label="<?php esc_attr_e( 'FAQ Group Configuration', 'next-level-faq' ); ?>">
+				<button 
+					type="button" 
+					role="tab"
+					class="nlf-faq-tab-button active" 
+					data-tab="content"
+					id="tab-content"
+					aria-selected="true"
+					aria-controls="panel-content">
+					<span class="dashicons dashicons-list-view" aria-hidden="true"></span>
+					<span class="nlf-tab-label"><?php esc_html_e( 'Content', 'next-level-faq' ); ?></span>
 				</button>
-				<button type="button" class="nlf-faq-tab-button" data-tab="themes">
-					<span class="dashicons dashicons-art"></span>
-					<?php esc_html_e( 'Themes', 'next-level-faq' ); ?>
+				<button 
+					type="button"
+					role="tab" 
+					class="nlf-faq-tab-button" 
+					data-tab="appearance"
+					id="tab-appearance"
+					aria-selected="false"
+					aria-controls="panel-appearance">
+					<span class="dashicons dashicons-art" aria-hidden="true"></span>
+					<span class="nlf-tab-label"><?php esc_html_e( 'Appearance', 'next-level-faq' ); ?></span>
 				</button>
-				<button type="button" class="nlf-faq-tab-button" data-tab="settings">
-					<span class="dashicons dashicons-admin-settings"></span>
-					<?php esc_html_e( 'Settings', 'next-level-faq' ); ?>
-				</button>
-				<button type="button" class="nlf-faq-tab-button" data-tab="style">
-					<span class="dashicons dashicons-admin-customizer"></span>
-					<?php esc_html_e( 'Style', 'next-level-faq' ); ?>
-				</button>
-				<button type="button" class="nlf-faq-tab-button" data-tab="live-view">
-					<span class="dashicons dashicons-visibility"></span>
-					<?php esc_html_e( 'Live View', 'next-level-faq' ); ?>
+				<button 
+					type="button"
+					role="tab" 
+					class="nlf-faq-tab-button" 
+					data-tab="preview"
+					id="tab-preview"
+					aria-selected="false"
+					aria-controls="panel-preview">
+					<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
+					<span class="nlf-tab-label"><?php esc_html_e( 'Preview', 'next-level-faq' ); ?></span>
 				</button>
 			</div>
 
 			<!-- Tab Panels -->
 			<div class="nlf-faq-tabs-content">
-				<!-- FAQ Items Tab -->
-				<div class="nlf-faq-tab-panel active" data-tab="faq-items">
-					<?php self::render_faq_items_tab( $items ); ?>
+				<!-- Content Tab (FAQ Items + Settings) -->
+				<div 
+					class="nlf-faq-tab-panel active" 
+					data-tab="content"
+					id="panel-content"
+					role="tabpanel"
+					aria-labelledby="tab-content"
+					tabindex="0">
+					<?php self::render_content_tab( $items, $settings ); ?>
 				</div>
 
-				<!-- Themes Tab -->
-				<div class="nlf-faq-tab-panel" data-tab="themes">
-					<?php self::render_themes_tab( $current_theme, $theme_custom ); ?>
+				<!-- Appearance Tab (Themes + Style) -->
+				<div 
+					class="nlf-faq-tab-panel" 
+					data-tab="appearance"
+					id="panel-appearance"
+					role="tabpanel"
+					aria-labelledby="tab-appearance"
+					tabindex="0"
+					hidden>
+					<?php self::render_appearance_tab( $current_theme, $theme_custom, $use_custom_style, $custom_styles ); ?>
 				</div>
 
-				<!-- Settings Tab -->
-				<div class="nlf-faq-tab-panel" data-tab="settings">
-					<?php self::render_settings_tab( $settings ); ?>
-				</div>
-
-				<!-- Style Tab -->
-				<div class="nlf-faq-tab-panel" data-tab="style">
-					<?php self::render_style_tab( $use_custom_style, $custom_styles ); ?>
-				</div>
-
-				<!-- Live View Tab -->
-				<div class="nlf-faq-tab-panel" data-tab="live-view">
-					<?php self::render_live_view_tab( $post->ID ); ?>
+				<!-- Preview Tab -->
+				<div 
+					class="nlf-faq-tab-panel" 
+					data-tab="preview"
+					id="panel-preview"
+					role="tabpanel"
+					aria-labelledby="tab-preview"
+					tabindex="0"
+					hidden>
+					<?php self::render_preview_tab( $post->ID, $items ); ?>
 				</div>
 			</div>
 		</div>
@@ -228,17 +251,61 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	}
 
 	/**
-	 * Render FAQ Items tab content.
+	 * Render Content tab (FAQ Items + Settings).
+	 *
+	 * @param array $items    FAQ items.
+	 * @param array $settings Group settings.
+	 */
+	private static function render_content_tab( $items, $settings ) {
+		?>
+		<!-- FAQ Items Section -->
+		<div class="nlf-section">
+			<div class="nlf-section-header">
+				<h3><?php esc_html_e( 'FAQ Items', 'next-level-faq' ); ?></h3>
+				<p class="description">
+					<?php esc_html_e( 'Add questions and answers that your visitors commonly ask.', 'next-level-faq' ); ?>
+				</p>
+			</div>
+			<?php self::render_faq_items_table( $items ); ?>
+		</div>
+
+		<!-- Settings Section -->
+		<div class="nlf-section nlf-section-bordered">
+			<div class="nlf-section-header">
+				<h3><?php esc_html_e( 'Behavior & Display Settings', 'next-level-faq' ); ?></h3>
+				<p class="description">
+					<?php esc_html_e( 'Control how users interact with your FAQs.', 'next-level-faq' ); ?>
+				</p>
+			</div>
+			<?php self::render_settings_fields( $settings ); ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render FAQ Items table.
 	 *
 	 * @param array $items FAQ items.
 	 */
-	private static function render_faq_items_tab( $items ) {
+	private static function render_faq_items_table( $items ) {
+		if ( empty( $items ) ) {
+			// Empty state
+			?>
+			<div class="nlf-empty-state">
+				<div class="nlf-empty-icon">
+					<span class="dashicons dashicons-editor-help"></span>
+				</div>
+				<h3><?php esc_html_e( 'No questions yet', 'next-level-faq' ); ?></h3>
+				<p><?php esc_html_e( 'Add questions and answers that your visitors commonly ask.', 'next-level-faq' ); ?></p>
+				<button type="button" class="button button-primary button-hero" id="nlf-faq-group-add-row">
+					<?php esc_html_e( 'Add Your First Question', 'next-level-faq' ); ?>
+				</button>
+			</div>
+			<?php
+		}
 		?>
-		<p class="description">
-			<?php esc_html_e( 'Add multiple questions and answers to this FAQ group. Control visibility, default open state, and highlight notable items.', 'next-level-faq' ); ?>
-		</p>
 
-		<table class="widefat fixed striped nlf-faq-questions-table nlf-faq-group-table">
+		<table class="widefat fixed striped nlf-faq-questions-table nlf-faq-group-table" <?php echo empty( $items ) ? 'style="display:none;"' : ''; ?>>
 			<thead>
 				<tr>
 					<th style="width:32px;"></th>
@@ -359,12 +426,48 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	}
 
 	/**
-	 * Render Themes tab content.
+	 * Render Appearance tab (Themes + Style consolidated).
+	 *
+	 * @param string $current_theme    Selected theme.
+	 * @param array  $theme_custom     Custom theme colors.
+	 * @param bool   $use_custom_style Whether to use custom styles.
+	 * @param array  $custom_styles    Custom style values.
+	 */
+	private static function render_appearance_tab( $current_theme, $theme_custom, $use_custom_style, $custom_styles ) {
+		?>
+		<div class="nlf-appearance-wrapper">
+			<!-- Quick Style Section -->
+			<div class="nlf-section">
+				<div class="nlf-section-header">
+					<h3><?php esc_html_e( 'Theme Presets', 'next-level-faq' ); ?></h3>
+					<p class="description">
+						<?php esc_html_e( 'Choose a pre-designed theme to quickly style your FAQs.', 'next-level-faq' ); ?>
+					</p>
+				</div>
+				<?php self::render_theme_selector( $current_theme, $theme_custom ); ?>
+			</div>
+
+			<!-- Advanced Styles Section -->
+			<div class="nlf-section nlf-section-bordered">
+				<div class="nlf-section-header">
+					<h3><?php esc_html_e( 'Advanced Style Overrides', 'next-level-faq' ); ?></h3>
+					<p class="description">
+						<?php esc_html_e( 'Fine-tune every detail or override global styles for this group.', 'next-level-faq' ); ?>
+					</p>
+				</div>
+				<?php self::render_custom_styles( $use_custom_style, $custom_styles ); ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render theme selector.
 	 *
 	 * @param string $current_theme Selected theme.
 	 * @param array  $theme_custom  Custom theme colors.
 	 */
-	private static function render_themes_tab( $current_theme, $theme_custom ) {
+	private static function render_theme_selector( $current_theme, $theme_custom ) {
 		$themes = self::get_theme_presets();
 		?>
 		<div class="nlf-themes-wrapper">
@@ -441,29 +544,42 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	}
 
 	/**
-	 * Render Settings tab content.
+	 * Render Settings fields.
 	 *
 	 * @param array $settings Group settings.
 	 */
-	private static function render_settings_tab( $settings ) {
+	private static function render_settings_fields( $settings ) {
 		?>
 		<div class="nlf-settings-wrapper">
-			<h3><?php esc_html_e( 'Behavior Settings', 'next-level-faq' ); ?></h3>
-			<table class="form-table">
+			<h4 class="nlf-subsection-title"><?php esc_html_e( 'How should users interact?', 'next-level-faq' ); ?></h4>
+			<table class="form-table nlf-settings-table">
 				<tr>
 					<th scope="row">
-						<label for="setting_accordion_mode"><?php esc_html_e( 'Accordion Mode', 'next-level-faq' ); ?></label>
+						<label for="setting_accordion_mode">
+							<?php esc_html_e( 'Accordion Mode', 'next-level-faq' ); ?>
+							<button type="button" class="nlf-help-trigger" aria-label="<?php esc_attr_e( 'Learn more', 'next-level-faq' ); ?>" data-tooltip="accordion-help">
+								<span class="dashicons dashicons-editor-help" aria-hidden="true"></span>
+							</button>
+						</label>
 					</th>
 					<td>
 						<label>
 							<input type="checkbox" id="setting_accordion_mode" name="nlf_faq_group_settings[accordion_mode]" value="1" <?php checked( ! empty( $settings['accordion_mode'] ) ); ?> />
 							<?php esc_html_e( 'Only allow one item to be open at a time', 'next-level-faq' ); ?>
 						</label>
+						<p class="nlf-help-text" id="accordion-help">
+							<?php esc_html_e( 'When enabled, opening one item automatically closes all others. Perfect for keeping your FAQ section compact.', 'next-level-faq' ); ?>
+						</p>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">
-						<label for="setting_initial_state"><?php esc_html_e( 'Initial State', 'next-level-faq' ); ?></label>
+						<label for="setting_initial_state">
+							<?php esc_html_e( 'Initial State', 'next-level-faq' ); ?>
+							<button type="button" class="nlf-help-trigger" aria-label="<?php esc_attr_e( 'Learn more', 'next-level-faq' ); ?>" data-tooltip="initial-help">
+								<span class="dashicons dashicons-editor-help" aria-hidden="true"></span>
+							</button>
+						</label>
 					</th>
 					<td>
 						<select id="setting_initial_state" name="nlf_faq_group_settings[initial_state]">
@@ -471,11 +587,19 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 							<option value="first_open" <?php selected( $settings['initial_state'] ?? '', 'first_open' ); ?>><?php esc_html_e( 'First Item Open', 'next-level-faq' ); ?></option>
 							<option value="custom" <?php selected( $settings['initial_state'] ?? '', 'custom' ); ?>><?php esc_html_e( 'Custom (Use item settings)', 'next-level-faq' ); ?></option>
 						</select>
+						<p class="nlf-help-text" id="initial-help">
+							<?php esc_html_e( 'Choose how items should appear when the page loads. "Custom" uses the "Open by default" setting for each item.', 'next-level-faq' ); ?>
+						</p>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">
-						<label for="setting_animation_speed"><?php esc_html_e( 'Animation Speed', 'next-level-faq' ); ?></label>
+						<label for="setting_animation_speed">
+							<?php esc_html_e( 'Animation Speed', 'next-level-faq' ); ?>
+							<button type="button" class="nlf-help-trigger" aria-label="<?php esc_attr_e( 'Learn more', 'next-level-faq' ); ?>" data-tooltip="animation-help">
+								<span class="dashicons dashicons-editor-help" aria-hidden="true"></span>
+							</button>
+						</label>
 					</th>
 					<td>
 						<select id="setting_animation_speed" name="nlf_faq_group_settings[animation_speed]">
@@ -483,43 +607,70 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 							<option value="normal" <?php selected( $settings['animation_speed'] ?? 'normal', 'normal' ); ?>><?php esc_html_e( 'Normal (300ms)', 'next-level-faq' ); ?></option>
 							<option value="slow" <?php selected( $settings['animation_speed'] ?? '', 'slow' ); ?>><?php esc_html_e( 'Slow (500ms)', 'next-level-faq' ); ?></option>
 						</select>
+						<p class="nlf-help-text" id="animation-help">
+							<?php esc_html_e( 'Controls how quickly items expand and collapse. Normal works well for most sites.', 'next-level-faq' ); ?>
+						</p>
 					</td>
 				</tr>
 			</table>
 
-			<h3><?php esc_html_e( 'Display Options', 'next-level-faq' ); ?></h3>
-			<table class="form-table">
+			<h4 class="nlf-subsection-title"><?php esc_html_e( 'What should users see?', 'next-level-faq' ); ?></h4>
+			<table class="form-table nlf-settings-table">
 				<tr>
 					<th scope="row">
-						<label for="setting_show_search"><?php esc_html_e( 'Search Box', 'next-level-faq' ); ?></label>
+						<label for="setting_show_search">
+							<?php esc_html_e( 'Search Box', 'next-level-faq' ); ?>
+							<button type="button" class="nlf-help-trigger" aria-label="<?php esc_attr_e( 'Learn more', 'next-level-faq' ); ?>" data-tooltip="search-help">
+								<span class="dashicons dashicons-editor-help" aria-hidden="true"></span>
+							</button>
+						</label>
 					</th>
 					<td>
 						<label>
 							<input type="checkbox" id="setting_show_search" name="nlf_faq_group_settings[show_search]" value="1" <?php checked( ! empty( $settings['show_search'] ) ); ?> />
 							<?php esc_html_e( 'Show search box above FAQ items', 'next-level-faq' ); ?>
 						</label>
+						<p class="nlf-help-text" id="search-help">
+							<?php esc_html_e( 'Adds a live search box that filters questions and answers as visitors type.', 'next-level-faq' ); ?>
+						</p>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">
-						<label for="setting_show_counter"><?php esc_html_e( 'Item Counter', 'next-level-faq' ); ?></label>
+						<label for="setting_show_counter">
+							<?php esc_html_e( 'Item Counter', 'next-level-faq' ); ?>
+							<button type="button" class="nlf-help-trigger" aria-label="<?php esc_attr_e( 'Learn more', 'next-level-faq' ); ?>" data-tooltip="counter-help">
+								<span class="dashicons dashicons-editor-help" aria-hidden="true"></span>
+							</button>
+						</label>
 					</th>
 					<td>
 						<label>
 							<input type="checkbox" id="setting_show_counter" name="nlf_faq_group_settings[show_counter]" value="1" <?php checked( ! empty( $settings['show_counter'] ) ); ?> />
 							<?php esc_html_e( 'Display item numbers (e.g., 1., 2., 3.)', 'next-level-faq' ); ?>
 						</label>
+						<p class="nlf-help-text" id="counter-help">
+							<?php esc_html_e( 'Shows numbered labels before each question for easy reference.', 'next-level-faq' ); ?>
+						</p>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">
-						<label for="setting_smooth_scroll"><?php esc_html_e( 'Smooth Scroll', 'next-level-faq' ); ?></label>
+						<label for="setting_smooth_scroll">
+							<?php esc_html_e( 'Smooth Scroll', 'next-level-faq' ); ?>
+							<button type="button" class="nlf-help-trigger" aria-label="<?php esc_attr_e( 'Learn more', 'next-level-faq' ); ?>" data-tooltip="scroll-help">
+								<span class="dashicons dashicons-editor-help" aria-hidden="true"></span>
+							</button>
+						</label>
 					</th>
 					<td>
 						<label>
 							<input type="checkbox" id="setting_smooth_scroll" name="nlf_faq_group_settings[smooth_scroll]" value="1" <?php checked( ! empty( $settings['smooth_scroll'] ) ); ?> />
 							<?php esc_html_e( 'Scroll to item when opened via URL hash', 'next-level-faq' ); ?>
 						</label>
+						<p class="nlf-help-text" id="scroll-help">
+							<?php esc_html_e( 'Smoothly scrolls opened items into view, helpful when linking directly to specific questions.', 'next-level-faq' ); ?>
+						</p>
 					</td>
 				</tr>
 			</table>
@@ -528,12 +679,12 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	}
 
 	/**
-	 * Render Style tab content.
+	 * Render custom styles section.
 	 *
 	 * @param bool  $use_custom_style Whether to use custom styles.
 	 * @param array $custom_styles    Custom style values.
 	 */
-	private static function render_style_tab( $use_custom_style, $custom_styles ) {
+	private static function render_custom_styles( $use_custom_style, $custom_styles ) {
 		?>
 		<div class="nlf-style-wrapper">
 			<div class="nlf-style-toggle">
@@ -663,26 +814,75 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	}
 
 	/**
-	 * Render Live View tab content.
+	 * Render Preview tab content.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int   $post_id Post ID.
+	 * @param array $items   FAQ items.
 	 */
-	private static function render_live_view_tab( $post_id ) {
+	private static function render_preview_tab( $post_id, $items ) {
 		?>
-		<div class="nlf-live-view-wrapper">
-			<div class="nlf-live-view-notice">
-				<p>
-					<span class="dashicons dashicons-info"></span>
-					<?php esc_html_e( 'Save the group to see the live preview with all your settings applied.', 'next-level-faq' ); ?>
-				</p>
-			</div>
-			<div class="nlf-live-view-container" data-group-id="<?php echo esc_attr( $post_id ); ?>">
-				<div class="nlf-live-view-loading">
-					<span class="spinner is-active"></span>
-					<?php esc_html_e( 'Loading preview...', 'next-level-faq' ); ?>
+		<div class="nlf-preview-wrapper">
+			<?php if ( empty( $items ) ) : ?>
+				<!-- Empty State -->
+				<div class="nlf-preview-empty-state">
+					<div class="nlf-empty-icon">
+						<span class="dashicons dashicons-visibility"></span>
+					</div>
+					<h3><?php esc_html_e( 'Preview will appear after you add items', 'next-level-faq' ); ?></h3>
+					<p><?php esc_html_e( 'Add at least one question in the Content tab, then return here to see how it looks.', 'next-level-faq' ); ?></p>
+					<button type="button" class="button button-primary" data-switch-tab="content">
+						<?php esc_html_e( 'Go to Content Tab', 'next-level-faq' ); ?> →
+					</button>
 				</div>
-				<div class="nlf-live-view-content"></div>
-			</div>
+			<?php else : ?>
+				<div class="nlf-preview-controls">
+					<div class="nlf-preview-device-toggle" role="radiogroup" aria-label="<?php esc_attr_e( 'Preview device', 'next-level-faq' ); ?>">
+						<button type="button" class="nlf-device-btn active" data-device="desktop" aria-label="<?php esc_attr_e( 'Desktop view', 'next-level-faq' ); ?>">
+							<span class="dashicons dashicons-desktop" aria-hidden="true"></span>
+						</button>
+						<button type="button" class="nlf-device-btn" data-device="tablet" aria-label="<?php esc_attr_e( 'Tablet view', 'next-level-faq' ); ?>">
+							<span class="dashicons dashicons-tablet" aria-hidden="true"></span>
+						</button>
+						<button type="button" class="nlf-device-btn" data-device="mobile" aria-label="<?php esc_attr_e( 'Mobile view', 'next-level-faq' ); ?>">
+							<span class="dashicons dashicons-smartphone" aria-hidden="true"></span>
+						</button>
+					</div>
+					<button type="button" class="button nlf-refresh-preview" id="nlf-manual-refresh">
+						<span class="dashicons dashicons-update" aria-hidden="true"></span>
+						<?php esc_html_e( 'Refresh Preview', 'next-level-faq' ); ?>
+					</button>
+				</div>
+				
+				<div class="nlf-preview-notice">
+					<span class="dashicons dashicons-info" aria-hidden="true"></span>
+					<span><?php esc_html_e( 'Save the group to see all changes reflected in the preview.', 'next-level-faq' ); ?></span>
+				</div>
+
+				<div class="nlf-preview-viewport" data-device="desktop">
+					<div class="nlf-preview-container" data-group-id="<?php echo esc_attr( $post_id ); ?>">
+						<!-- Loading Skeleton -->
+						<div class="nlf-preview-loading">
+							<div class="nlf-skeleton-faq">
+								<div class="nlf-skeleton-line nlf-skeleton-title"></div>
+								<div class="nlf-skeleton-item">
+									<div class="nlf-skeleton-line nlf-skeleton-question"></div>
+									<div class="nlf-skeleton-line nlf-skeleton-answer"></div>
+								</div>
+								<div class="nlf-skeleton-item">
+									<div class="nlf-skeleton-line nlf-skeleton-question"></div>
+									<div class="nlf-skeleton-line nlf-skeleton-answer"></div>
+								</div>
+								<div class="nlf-skeleton-item">
+									<div class="nlf-skeleton-line nlf-skeleton-question"></div>
+									<div class="nlf-skeleton-line nlf-skeleton-answer"></div>
+								</div>
+							</div>
+						</div>
+						<!-- Preview Content -->
+						<div class="nlf-preview-content"></div>
+					</div>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 	}

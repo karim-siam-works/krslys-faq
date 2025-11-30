@@ -1,24 +1,80 @@
 (function ($) {
 	'use strict';
 
-	// Tab Switching
+	// Tab Switching with ARIA support
 	function initTabs() {
-		$('.nlf-faq-tab-button').on('click', function () {
-			var targetTab = $(this).data('tab');
-			
-			// Update buttons
-			$('.nlf-faq-tab-button').removeClass('active');
-			$(this).addClass('active');
-			
-			// Update panels
-			$('.nlf-faq-tab-panel').removeClass('active');
-			$('.nlf-faq-tab-panel[data-tab="' + targetTab + '"]').addClass('active');
-			
-			// Load live preview when switching to live view tab
-			if (targetTab === 'live-view') {
-				loadLivePreview();
+		var $tabs = $('.nlf-faq-tab-button');
+		var $panels = $('.nlf-faq-tab-panel');
+
+		$tabs.on('click', function (e) {
+			e.preventDefault();
+			switchToTab($(this));
+		});
+
+		// Keyboard navigation for tabs
+		$tabs.on('keydown', function (e) {
+			var $currentTab = $(this);
+			var currentIndex = $tabs.index($currentTab);
+			var $targetTab = null;
+
+			switch(e.key) {
+				case 'ArrowRight':
+				case 'ArrowDown':
+					$targetTab = $tabs.eq((currentIndex + 1) % $tabs.length);
+					break;
+				case 'ArrowLeft':
+				case 'ArrowUp':
+					$targetTab = $tabs.eq((currentIndex - 1 + $tabs.length) % $tabs.length);
+					break;
+				case 'Home':
+					$targetTab = $tabs.first();
+					break;
+				case 'End':
+					$targetTab = $tabs.last();
+					break;
+				default:
+					return;
+			}
+
+			if ($targetTab) {
+				e.preventDefault();
+				switchToTab($targetTab);
+				$targetTab.focus();
 			}
 		});
+
+		// Tab switch button (e.g., from empty state)
+		$(document).on('click', '[data-switch-tab]', function (e) {
+			e.preventDefault();
+			var targetTab = $(this).data('switch-tab');
+			var $targetTabBtn = $tabs.filter('[data-tab="' + targetTab + '"]');
+			if ($targetTabBtn.length) {
+				switchToTab($targetTabBtn);
+			}
+		});
+	}
+
+	function switchToTab($tab) {
+		var targetTab = $tab.data('tab');
+		var $tabs = $('.nlf-faq-tab-button');
+		var $panels = $('.nlf-faq-tab-panel');
+
+		// Update ARIA and classes
+		$tabs.removeClass('active').attr('aria-selected', 'false');
+		$tab.addClass('active').attr('aria-selected', 'true');
+
+		// Update panels
+		$panels.removeClass('active').attr('hidden', true);
+		var $targetPanel = $panels.filter('[data-tab="' + targetTab + '"]');
+		$targetPanel.addClass('active').removeAttr('hidden');
+
+		// Focus panel for screen readers
+		$targetPanel.focus();
+
+		// Load preview when switching to preview tab
+		if (targetTab === 'preview') {
+			loadLivePreview();
+		}
 	}
 
 	// Theme Selection
@@ -51,16 +107,16 @@
 
 	// Live Preview Loader
 	function loadLivePreview() {
-		var $container = $('.nlf-live-view-container');
-		var $loading = $container.find('.nlf-live-view-loading');
-		var $content = $container.find('.nlf-live-view-content');
+		var $container = $('.nlf-preview-container');
+		var $loading = $container.find('.nlf-preview-loading');
+		var $content = $container.find('.nlf-preview-content');
 		var groupId = $container.data('group-id');
 		
 		if (!groupId || groupId === '0' || groupId === 0) {
-			$loading.html('<p>Save the group first to see the preview.</p>');
-			return;
+			return; // Empty state is shown in PHP
 		}
 		
+		// Show loading skeleton
 		$loading.show();
 		$content.removeClass('loaded').hide();
 		
@@ -76,19 +132,20 @@
 			success: function (response) {
 				if (response.success && response.data.html) {
 					$content.html(response.data.html);
-					$loading.hide();
-					$content.addClass('loaded').show();
-					
-					// Initialize frontend FAQ interactions
-					if (typeof window.nlfInitFaq === 'function') {
-						window.nlfInitFaq($content);
-					}
+					$loading.fadeOut(200, function () {
+						$content.addClass('loaded').fadeIn(200);
+						
+						// Initialize frontend FAQ interactions
+						if (typeof window.nlfInitFaq === 'function') {
+							window.nlfInitFaq($content.get(0));
+						}
+					});
 				} else {
-					$loading.html('<p>' + (response.data.message || 'Failed to load preview.') + '</p>');
+					$loading.html('<div class="nlf-preview-error"><span class="dashicons dashicons-warning"></span><p>' + (response.data.message || 'Failed to load preview.') + '</p></div>');
 				}
 			},
 			error: function () {
-				$loading.html('<p>Error loading preview. Please save the group and try again.</p>');
+				$loading.html('<div class="nlf-preview-error"><span class="dashicons dashicons-warning"></span><p>Error loading preview. Please save the group and try again.</p></div>');
 			}
 		});
 	}
@@ -138,13 +195,86 @@
 		}
 	}
 
+	// Unsaved Changes Warning
+	function initUnsavedWarning() {
+		var hasChanges = false;
+		var $indicator = $('<div class="nlf-unsaved-indicator"><span class="dashicons dashicons-warning"></span><span>Unsaved changes</span></div>');
+		$('body').append($indicator);
+
+		// Track changes
+		$('#post').on('change input', 'input, select, textarea', function () {
+			if (!hasChanges) {
+				hasChanges = true;
+				$indicator.addClass('visible');
+			}
+		});
+
+		// Clear on save
+		$('#publish, #save-post').on('click', function () {
+			hasChanges = false;
+			$indicator.removeClass('visible');
+		});
+
+		// Warn before leaving
+		$(window).on('beforeunload', function (e) {
+			if (hasChanges) {
+				var message = 'You have unsaved changes. Are you sure you want to leave?';
+				e.returnValue = message;
+				return message;
+			}
+		});
+	}
+
+	// Device Preview Toggle
+	function initDeviceToggle() {
+		$('.nlf-device-btn').on('click', function () {
+			var device = $(this).data('device');
+			
+			$('.nlf-device-btn').removeClass('active');
+			$(this).addClass('active');
+			
+			$('.nlf-preview-viewport').attr('data-device', device);
+		});
+
+		// Manual refresh button
+		$('#nlf-manual-refresh').on('click', function (e) {
+			e.preventDefault();
+			loadLivePreview();
+		});
+	}
+
+	// Help Tooltips Toggle
+	function initHelpTooltips() {
+		$('.nlf-help-trigger').on('click', function (e) {
+			e.preventDefault();
+			var $helpText = $(this).closest('tr').find('.nlf-help-text');
+			$helpText.slideToggle(200);
+			
+			var expanded = $helpText.is(':visible');
+			$(this).attr('aria-expanded', expanded);
+		});
+	}
+
+	// Show table when adding first item from empty state
+	function showTableOnFirstAdd() {
+		$(document).on('click', '.nlf-empty-state .button', function () {
+			$('.nlf-empty-state').fadeOut(200, function () {
+				$('.nlf-faq-group-table').fadeIn(200);
+			});
+		});
+	}
+
 	$(function () {
-		// Initialize tabs
+		// Initialize all components
 		if ($('.nlf-faq-tabs-nav').length) {
 			initTabs();
 			initThemeSelection();
 			initCustomStyleToggle();
 			initColorPickers();
+			initUnsavedWarning();
+			initDeviceToggle();
+			initHelpTooltips();
+			showTableOnFirstAdd();
 		}
 
 		var $body = $('#nlf-faq-group-questions-body');
