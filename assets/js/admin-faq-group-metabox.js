@@ -1,399 +1,629 @@
-(function ($) {
+(() => {
 	'use strict';
 
-	// Tab Switching with ARIA support
+	const doc = document;
+
+	const $$ = (selector, context = doc) => Array.from(context.querySelectorAll(selector));
+	const $ = (selector, context = doc) => context.querySelector(selector);
+
+	const hasTabs = () => Boolean($('.nlf-faq-tabs-nav'));
+
+	function init() {
+		if (!hasTabs()) {
+			return;
+		}
+
+		initTabs();
+		initThemeSelection();
+		initCustomStyleToggle();
+		initColorPickers();
+		initResetButtons();
+		initUnsavedWarning();
+		initDeviceToggle();
+		initPreviewRefresh();
+		initHelpTooltips();
+		initEmptyStateHandlers();
+		initQuestionList();
+	}
+
+	// Tabs
 	function initTabs() {
-		var $tabs = $('.nlf-faq-tab-button');
-		var $panels = $('.nlf-faq-tab-panel');
+		const tabs = $$('.nlf-faq-tab-button');
+		const panels = $$('.nlf-faq-tab-panel');
 
-		$tabs.on('click', function (e) {
-			e.preventDefault();
-			switchToTab($(this));
-		});
-
-		// Keyboard navigation for tabs
-		$tabs.on('keydown', function (e) {
-			var $currentTab = $(this);
-			var currentIndex = $tabs.index($currentTab);
-			var $targetTab = null;
-
-			switch(e.key) {
-				case 'ArrowRight':
-				case 'ArrowDown':
-					$targetTab = $tabs.eq((currentIndex + 1) % $tabs.length);
-					break;
-				case 'ArrowLeft':
-				case 'ArrowUp':
-					$targetTab = $tabs.eq((currentIndex - 1 + $tabs.length) % $tabs.length);
-					break;
-				case 'Home':
-					$targetTab = $tabs.first();
-					break;
-				case 'End':
-					$targetTab = $tabs.last();
-					break;
-				default:
-					return;
+		const switchToTab = (tabEl) => {
+			if (!tabEl) {
+				return;
 			}
 
-			if ($targetTab) {
-				e.preventDefault();
-				switchToTab($targetTab);
-				$targetTab.focus();
-			}
-		});
+			const target = tabEl.getAttribute('data-tab');
 
-		// Tab switch button (e.g., from empty state)
-		$(document).on('click', '[data-switch-tab]', function (e) {
-			e.preventDefault();
-			var targetTab = $(this).data('switch-tab');
-			var $targetTabBtn = $tabs.filter('[data-tab="' + targetTab + '"]');
-			if ($targetTabBtn.length) {
-				switchToTab($targetTabBtn);
-			}
-		});
-	}
+			tabs.forEach((tab) => {
+				tab.classList.toggle('active', tab === tabEl);
+				tab.setAttribute('aria-selected', tab === tabEl ? 'true' : 'false');
+			});
 
-	function switchToTab($tab) {
-		var targetTab = $tab.data('tab');
-		var $tabs = $('.nlf-faq-tab-button');
-		var $panels = $('.nlf-faq-tab-panel');
-
-		// Update ARIA and classes
-		$tabs.removeClass('active').attr('aria-selected', 'false');
-		$tab.addClass('active').attr('aria-selected', 'true');
-
-		// Update panels
-		$panels.removeClass('active').attr('hidden', true);
-		var $targetPanel = $panels.filter('[data-tab="' + targetTab + '"]');
-		$targetPanel.addClass('active').removeAttr('hidden');
-
-		// Focus panel for screen readers
-		$targetPanel.focus();
-
-		// Load preview when switching to preview tab
-		if (targetTab === 'preview') {
-			loadLivePreview();
-		}
-	}
-
-	// Theme Selection
-	function initThemeSelection() {
-		$('.nlf-theme-card').on('click', function () {
-			$('.nlf-theme-card').removeClass('active');
-			$(this).addClass('active');
-			$(this).find('input[type="radio"]').prop('checked', true);
-		});
-	}
-
-	// Custom Style Toggle
-	function initCustomStyleToggle() {
-		$('#nlf-use-custom-style-toggle').on('change', function () {
-			var $fields = $('.nlf-custom-style-fields');
-			if ($(this).is(':checked')) {
-				$fields.show();
-			} else {
-				$fields.hide();
-			}
-		});
-	}
-
-	// Color Pickers
-	function initColorPickers() {
-		if (typeof $.fn.wpColorPicker !== 'undefined') {
-			$('.nlf-color-picker').wpColorPicker();
-		}
-	}
-
-	// Live Preview Loader
-	function loadLivePreview() {
-		var $container = $('.nlf-preview-container');
-		var $loading = $container.find('.nlf-preview-loading');
-		var $content = $container.find('.nlf-preview-content');
-		var groupId = $container.data('group-id');
-		
-		if (!groupId || groupId === '0' || groupId === 0) {
-			return; // Empty state is shown in PHP
-		}
-		
-		// Show loading skeleton
-		$loading.show();
-		$content.removeClass('loaded').hide();
-		
-		// Make AJAX request to fetch preview
-		$.ajax({
-			url: nlfGroupData.ajaxurl,
-			type: 'POST',
-			data: {
-				action: 'nlf_get_group_preview',
-				group_id: groupId,
-				nonce: nlfGroupData.nonce
-			},
-			success: function (response) {
-				if (response.success && response.data.html) {
-					$content.html(response.data.html);
-					$loading.fadeOut(200, function () {
-						$content.addClass('loaded').fadeIn(200);
-						
-						// Initialize frontend FAQ interactions
-						if (typeof window.nlfInitFaq === 'function') {
-							window.nlfInitFaq($content.get(0));
-						}
-					});
+			panels.forEach((panel) => {
+				const isTarget = panel.getAttribute('data-tab') === target;
+				panel.classList.toggle('active', isTarget);
+				if (isTarget) {
+					panel.removeAttribute('hidden');
+					panel.focus();
 				} else {
-					$loading.html('<div class="nlf-preview-error"><span class="dashicons dashicons-warning"></span><p>' + (response.data.message || 'Failed to load preview.') + '</p></div>');
+					panel.setAttribute('hidden', 'true');
 				}
-			},
-			error: function () {
-				$loading.html('<div class="nlf-preview-error"><span class="dashicons dashicons-warning"></span><p>Error loading preview. Please save the group and try again.</p></div>');
+			});
+
+			if (target === 'preview') {
+				loadLivePreview($$('.nlf-preview-container[data-preview="main"]'));
 			}
+
+			if (target === 'appearance') {
+				loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]'));
+			}
+		};
+
+		tabs.forEach((tab) => {
+			tab.addEventListener('click', (event) => {
+				event.preventDefault();
+				switchToTab(tab);
+			});
+
+			tab.addEventListener('keydown', (event) => {
+				const currentIndex = tabs.indexOf(tab);
+				let nextIndex = null;
+
+				switch (event.key) {
+					case 'ArrowRight':
+					case 'ArrowDown':
+						nextIndex = (currentIndex + 1) % tabs.length;
+						break;
+					case 'ArrowLeft':
+					case 'ArrowUp':
+						nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+						break;
+					case 'Home':
+						nextIndex = 0;
+						break;
+					case 'End':
+						nextIndex = tabs.length - 1;
+						break;
+					default:
+						return;
+				}
+
+				event.preventDefault();
+				switchToTab(tabs[nextIndex]);
+				tabs[nextIndex].focus();
+			});
+		});
+
+		doc.addEventListener('click', (event) => {
+			const trigger = event.target.closest('[data-switch-tab]');
+			if (!trigger) {
+				return;
+			}
+			event.preventDefault();
+			const targetTab = trigger.getAttribute('data-switch-tab');
+			const tabButton = tabs.find((tab) => tab.getAttribute('data-tab') === targetTab);
+			if (tabButton) {
+				switchToTab(tabButton);
+			}
+		});
+	}
+
+	// Theme selector
+	function initThemeSelection() {
+		const options = $$('.nlf-theme-option');
+		if (!options.length) {
+			return;
+		}
+
+		options.forEach((option) => {
+			const input = $('input[type="radio"]', option);
+			if (!input) {
+				return;
+			}
+
+			input.addEventListener('change', () => {
+				options.forEach((opt) => opt.classList.remove('is-active'));
+				option.classList.add('is-active');
+				loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]'));
+			});
+		});
+	}
+
+	function initCustomStyleToggle() {
+		const toggle = $('#nlf-use-custom-style-toggle');
+		const fields = $('.nlf-custom-style-fields');
+
+		if (!toggle || !fields) {
+			return;
+		}
+
+		toggle.addEventListener('change', () => {
+			fields.style.display = toggle.checked ? '' : 'none';
+			loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]'));
+		});
+	}
+
+	// Color pickers (WordPress dependency)
+	function initColorPickers() {
+		if (!window.jQuery || typeof window.jQuery.fn.wpColorPicker === 'undefined') {
+			return;
+		}
+
+		window.jQuery('.nlf-color-picker').wpColorPicker({
+			change: () => loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]')),
+			clear: () => loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]')),
+		});
+	}
+
+	function initResetButtons() {
+		doc.addEventListener('click', (event) => {
+			const button = event.target.closest('[data-reset]');
+			if (!button) {
+				return;
+			}
+
+			event.preventDefault();
+
+			if (button.getAttribute('data-reset') === 'theme') {
+				resetThemeSelection();
+			}
+
+			if (button.getAttribute('data-reset') === 'styles') {
+				resetCustomStyles();
+			}
+		});
+	}
+
+	function resetThemeSelection() {
+		const selector = $('.nlf-theme-selector');
+		if (!selector) {
+			return;
+		}
+
+		const defaultTheme = selector.getAttribute('data-default-theme') || 'default';
+		const defaultRadio = doc.getElementById(`theme_${defaultTheme}`);
+
+		if (defaultRadio) {
+			defaultRadio.checked = true;
+			defaultRadio.dispatchEvent(new Event('change', { bubbles: true }));
+		}
+
+		$$('.nlf-theme-option').forEach((option) => {
+			option.classList.toggle('is-active', option.contains(defaultRadio));
+		});
+
+		$$('.nlf-theme-color').forEach((input) => {
+			input.value = '';
+			input.dispatchEvent(new Event('change', { bubbles: true }));
+			if (window.jQuery && window.jQuery(input).data('wpColorPicker')) {
+				window.jQuery(input).wpColorPicker('color', '');
+			}
+		});
+	}
+
+	function resetCustomStyles() {
+		const fields = $('.nlf-custom-style-fields');
+		if (!fields) {
+			return;
+		}
+
+		let defaults = fields.getAttribute('data-default-styles');
+		if (!defaults) {
+			return;
+		}
+
+		try {
+			defaults = JSON.parse(defaults);
+		} catch (error) {
+			return;
+		}
+
+		Object.keys(defaults).forEach((key) => {
+			const input = fields.querySelector(`[name="nlf_faq_group_custom_styles[${key}]"]`);
+			if (!input) {
+				return;
+			}
+
+			input.value = defaults[key];
+			if (window.jQuery && window.jQuery(input).data('wpColorPicker')) {
+				window.jQuery(input).wpColorPicker('color', defaults[key]);
+			}
+		});
+
+		loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]'));
+	}
+
+	// Live preview via fetch
+	function loadLivePreview(targetNodes) {
+		const containers = targetNodes && targetNodes.length ? targetNodes : $$('.nlf-preview-container');
+
+		containers.forEach((container) => {
+			if (!container) {
+				return;
+			}
+
+			const groupId = parseInt(container.getAttribute('data-group-id'), 10);
+			if (!groupId) {
+				return;
+			}
+
+			const loading = $('.nlf-preview-loading', container);
+			const content = $('.nlf-preview-content', container);
+			if (!loading || !content) {
+				return;
+			}
+
+			loading.style.display = '';
+			content.classList.remove('loaded');
+			content.style.display = 'none';
+
+			const params = new URLSearchParams();
+			params.append('action', 'nlf_get_group_preview');
+			params.append('group_id', String(groupId));
+			params.append('nonce', nlfGroupData.nonce);
+
+			fetch(nlfGroupData.ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				},
+				body: params.toString(),
+			})
+				.then((response) => response.json())
+				.then((result) => {
+					if (result.success && result.data && result.data.html) {
+						content.innerHTML = result.data.html;
+						loading.style.display = 'none';
+						content.style.display = '';
+						content.classList.add('loaded');
+
+						if (typeof window.nlfInitFaq === 'function') {
+							window.nlfInitFaq(content);
+						}
+					} else {
+						const message = result.data && result.data.message ? result.data.message : 'Failed to load preview.';
+						loading.innerHTML = `<div class="nlf-preview-error"><span class="dashicons dashicons-warning"></span><p>${message}</p></div>`;
+					}
+				})
+				.catch(() => {
+					loading.innerHTML = '<div class="nlf-preview-error"><span class="dashicons dashicons-warning"></span><p>Error loading preview. Please save the group and try again.</p></div>';
+				});
 		});
 	}
 
 	function renumberGroupCheckboxes() {
-		$('#nlf-faq-group-questions-body .nlf-faq-question-row').each(function (index) {
-			var $row = $(this);
-
-			$row.find('input[type="checkbox"][name^="nlf_faq_group_visible"]').attr('name', 'nlf_faq_group_visible[' + index + ']');
-			$row.find('input[type="checkbox"][name^="nlf_faq_group_open"]').attr('name', 'nlf_faq_group_open[' + index + ']');
-			$row.find('input[type="checkbox"][name^="nlf_faq_group_highlight"]').attr('name', 'nlf_faq_group_highlight[' + index + ']');
+		const rows = $$('#nlf-faq-group-questions-body .nlf-faq-question-row');
+		rows.forEach((row, index) => {
+			setCheckboxName(row, 'nlf_faq_group_visible', index);
+			setCheckboxName(row, 'nlf_faq_group_open', index);
+			setCheckboxName(row, 'nlf_faq_group_highlight', index);
 		});
 	}
 
-	function initNewEditor($row) {
-		var $textarea = $row.find('.nlf-faq-group-answer-editor');
-		if (!$textarea.length) {
+	function setCheckboxName(row, name, index) {
+		const input = row.querySelector(`input[name^="${name}"]`);
+		if (!input) {
+			return;
+		}
+		input.setAttribute('name', `${name}[${index}]`);
+	}
+
+	function initNewEditor(row) {
+		const textarea = row.querySelector('.nlf-faq-group-answer-editor');
+		if (!textarea || !window.wp || !window.wp.editor) {
 			return;
 		}
 
-		// Check if WordPress editor APIs are available
-		if (!window.wp || !window.wp.editor) {
-			return;
+		if (!textarea.id) {
+			textarea.id = `nlf-faq-group-answer-${Date.now()}`;
 		}
 
-		// Ensure textarea has a unique ID before initialization
-		var id = $textarea.attr('id');
-		if (!id) {
-			id = 'nlf-faq-group-answer-' + String(Date.now());
-			$textarea.attr('id', id);
-		}
-
-		// Use wp.oldEditor if available (alias for wp.editor in WordPress 5.x+), otherwise fallback to wp.editor
-		var editorAPI = (window.wp.oldEditor && typeof window.wp.oldEditor.initialize === 'function') 
-			? window.wp.oldEditor 
-			: (window.wp.editor && typeof window.wp.editor.initialize === 'function' ? window.wp.editor : null);
+		const editorAPI =
+			(window.wp.oldEditor && typeof window.wp.oldEditor.initialize === 'function')
+				? window.wp.oldEditor
+				: (window.wp.editor && typeof window.wp.editor.initialize === 'function' ? window.wp.editor : null);
 
 		if (editorAPI) {
-			// Initialize TinyMCE editor with teeny settings matching wp_editor() PHP call
-			editorAPI.initialize(id, {
-				tinymce: {
-					wpautop: true
-				},
+			editorAPI.initialize(textarea.id, {
+				tinymce: { wpautop: true },
 				quicktags: true,
-				mediaButtons: false
+				mediaButtons: false,
 			});
 		}
 	}
 
-	// Unsaved Changes Warning
 	function initUnsavedWarning() {
-		var hasChanges = false;
-		var $indicator = $('<div class="nlf-unsaved-indicator"><span class="dashicons dashicons-warning"></span><span>Unsaved changes</span></div>');
-		$('body').append($indicator);
+		const indicator = doc.createElement('div');
+		indicator.className = 'nlf-unsaved-indicator';
+		indicator.innerHTML = '<span class="dashicons dashicons-warning"></span><span>Unsaved changes</span>';
+		doc.body.appendChild(indicator);
 
-		// Track changes
-		$('#post').on('change input', 'input, select, textarea', function () {
-			if (!hasChanges) {
-				hasChanges = true;
-				$indicator.addClass('visible');
-			}
-		});
+		let hasChanges = false;
 
-		// Clear on save
-		$('#publish, #save-post').on('click', function () {
-			hasChanges = false;
-			$indicator.removeClass('visible');
-		});
-
-		// Warn before leaving
-		$(window).on('beforeunload', function (e) {
-			if (hasChanges) {
-				var message = 'You have unsaved changes. Are you sure you want to leave?';
-				e.returnValue = message;
-				return message;
-			}
-		});
-	}
-
-	// Device Preview Toggle
-	function initDeviceToggle() {
-		$('.nlf-device-btn').on('click', function () {
-			var device = $(this).data('device');
-			
-			$('.nlf-device-btn').removeClass('active');
-			$(this).addClass('active');
-			
-			$('.nlf-preview-viewport').attr('data-device', device);
-		});
-
-		// Manual refresh button
-		$('#nlf-manual-refresh').on('click', function (e) {
-			e.preventDefault();
-			loadLivePreview();
-		});
-	}
-
-	// Help Tooltips Toggle
-	function initHelpTooltips() {
-		$('.nlf-help-trigger').on('click', function (e) {
-			e.preventDefault();
-			var $helpText = $(this).closest('tr').find('.nlf-help-text');
-			$helpText.slideToggle(200);
-			
-			var expanded = $helpText.is(':visible');
-			$(this).attr('aria-expanded', expanded);
-		});
-	}
-
-	// Show table when adding first item from empty state
-	function showTableOnFirstAdd() {
-		$(document).on('click', '.nlf-empty-state .button', function () {
-			$('.nlf-empty-state').fadeOut(200, function () {
-				$('.nlf-faq-group-table').fadeIn(200);
-			});
-		});
-	}
-
-	$(function () {
-		// Initialize all components
-		if ($('.nlf-faq-tabs-nav').length) {
-			initTabs();
-			initThemeSelection();
-			initCustomStyleToggle();
-			initColorPickers();
-			initUnsavedWarning();
-			initDeviceToggle();
-			initHelpTooltips();
-			showTableOnFirstAdd();
-		}
-
-		var $body = $('#nlf-faq-group-questions-body');
-		if (!$body.length) {
+		const form = $('#post');
+		if (!form) {
 			return;
 		}
 
-		// Initialize sortable for drag-and-drop reordering
-		$body.sortable({
-			handle: '.nlf-faq-sort-handle',
-			items: '.nlf-faq-question-row',
-			placeholder: 'nlf-faq-sort-placeholder',
-			cursor: 'move',
-			opacity: 0.8,
-			tolerance: 'pointer',
-			axis: 'y',
-			start: function (event, ui) {
-				// Save and remove TinyMCE editors before dragging to prevent DOM issues
-				var $row = ui.item;
-				var editorIds = [];
-				
-				// Find all textareas that might have editors (both ID patterns and class-based)
-				$row.find('textarea.nlf-faq-group-answer-editor, textarea[id^="nlf_faq_group_answer_"], textarea[id^="nlf-faq-group-answer-"]').each(function () {
-					var $textarea = $(this);
-					var id = $textarea.attr('id');
-					if (id && window.tinymce) {
-						var editor = window.tinymce.get(id);
-						if (editor) {
-							// Save editor content before removing
-							if (!editor.isHidden()) {
-								editor.save();
-							}
-							// Remove editor to prevent DOM access errors during drag
-							editor.remove();
-							editorIds.push(id);
-						}
-					}
+		const revealIndicator = () => {
+			if (!hasChanges) {
+				hasChanges = true;
+				indicator.classList.add('visible');
+			}
+		};
+
+		form.addEventListener('input', revealIndicator, true);
+		form.addEventListener('change', revealIndicator, true);
+
+		const resetIndicator = () => {
+			hasChanges = false;
+			indicator.classList.remove('visible');
+		};
+
+		const publish = $('#publish');
+		const saveDraft = $('#save-post');
+
+		[publish, saveDraft].forEach((button) => {
+			if (!button) {
+				return;
+			}
+			button.addEventListener('click', resetIndicator);
+		});
+
+		window.addEventListener('beforeunload', (event) => {
+			if (!hasChanges) {
+				return;
+			}
+			const message = 'You have unsaved changes. Are you sure you want to leave?';
+			event.returnValue = message;
+			return message;
+		});
+	}
+
+	function initDeviceToggle() {
+		const buttons = $$('.nlf-device-btn');
+		if (!buttons.length) {
+			return;
+		}
+
+		buttons.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const device = btn.getAttribute('data-device');
+				buttons.forEach((button) => button.classList.toggle('active', button === btn));
+				$$('.nlf-preview-viewport').forEach((viewport) => {
+					viewport.setAttribute('data-device', device);
 				});
-				
-				// Store editor IDs for restoration after drag
-				ui.item.data('editor-ids', editorIds);
-				
-				// Add visual feedback when dragging starts
-				ui.placeholder.height(ui.item.height());
-			},
-			stop: function (event, ui) {
-				// Restore TinyMCE editors after dragging
-				var $row = ui.item;
-				var editorIds = ui.item.data('editor-ids') || [];
-				
-				// Use wp.oldEditor if available, otherwise fallback to wp.editor
-				var editorAPI = (window.wp && window.wp.oldEditor && typeof window.wp.oldEditor.initialize === 'function')
-					? window.wp.oldEditor
-					: (window.wp && window.wp.editor && typeof window.wp.editor.initialize === 'function' ? window.wp.editor : null);
-				
-				if (editorAPI) {
-					editorIds.forEach(function (id) {
-						var $textarea = $row.find('textarea#' + id);
-						if ($textarea.length) {
-							// Reinitialize the editor after drag completes
-							editorAPI.initialize(id, {
-								tinymce: {
-									wpautop: true
-								},
-								quicktags: true,
-								mediaButtons: false
-							});
-						}
-					});
+			});
+		});
+	}
+
+	function initPreviewRefresh() {
+		doc.addEventListener('click', (event) => {
+			const trigger = event.target.closest('[data-refresh-preview]');
+			if (!trigger) {
+				return;
+			}
+			event.preventDefault();
+			const context = trigger.getAttribute('data-refresh-preview') || 'main';
+			const containers = context === 'appearance'
+				? $$('.nlf-preview-container[data-preview="appearance"]')
+				: $$('.nlf-preview-container[data-preview="main"]');
+			loadLivePreview(containers);
+		});
+	}
+
+	function initHelpTooltips() {
+		const triggers = $$('.nlf-help-trigger');
+		const helpTexts = $$('.nlf-help-text');
+
+		triggers.forEach((trigger) => {
+			trigger.setAttribute('aria-expanded', 'false');
+			trigger.addEventListener('click', (event) => {
+				event.preventDefault();
+				const help = trigger.closest('tr')?.querySelector('.nlf-help-text');
+				if (!help) {
+					return;
 				}
-				
-				// Clean up stored data
-				ui.item.removeData('editor-ids');
-				
-				// Renumber checkboxes after sorting
-				renumberGroupCheckboxes();
+
+				const isOpen = !help.hasAttribute('hidden');
+
+				helpTexts.forEach((text) => text.setAttribute('hidden', 'true'));
+				triggers.forEach((btn) => btn.setAttribute('aria-expanded', 'false'));
+
+				if (!isOpen) {
+					help.removeAttribute('hidden');
+					trigger.setAttribute('aria-expanded', 'true');
+				}
+			});
+		});
+	}
+
+	function initEmptyStateHandlers() {
+		doc.addEventListener('click', (event) => {
+			if (event.target.closest('.nlf-empty-state .button')) {
+				event.preventDefault();
+				hideEmptyStates();
+			}
+
+			if (event.target.closest('.nlf-onboarding-start')) {
+				event.preventDefault();
+				hideEmptyStates();
+				const addButton = $('#nlf-faq-group-add-row');
+				if (addButton) {
+					addButton.click();
+				}
 			}
 		});
+	}
 
-		var rowTemplate = $('#tmpl-nlf-faq-group-row').html();
-
-		$('#nlf-faq-group-add-row').on('click', function (e) {
-			e.preventDefault();
-
-			var index = $body.find('.nlf-faq-question-row').length;
-			var html = rowTemplate.replace(/{{index}}/g, String(index));
-
-			var $row = $(html);
-			$body.append($row);
-			initNewEditor($row);
-			renumberGroupCheckboxes();
-			// Refresh sortable to include the new row
-			$body.sortable('refresh');
+	function hideEmptyStates() {
+		$$('.nlf-empty-state, .nlf-onboarding-card').forEach((element) => {
+			element.style.display = 'none';
 		});
+		const table = $('.nlf-faq-group-table');
+		if (table) {
+			table.style.display = '';
+		}
+	}
 
-		$body.on('click', '.nlf-faq-remove-row', function (e) {
-			e.preventDefault();
-			var $row = $(this).closest('.nlf-faq-question-row');
+	function initQuestionList() {
+		const body = $('#nlf-faq-group-questions-body');
+		const addButton = $('#nlf-faq-group-add-row');
+		const template = $('#tmpl-nlf-faq-group-row');
 
-			// Remove TinyMCE editor instance to avoid leaks
-			var $textarea = $row.find('.nlf-faq-group-answer-editor');
-			if ($textarea.length) {
-				var id = $textarea.attr('id');
-				if (id && window.wp && window.wp.editor && typeof window.wp.editor.remove === 'function') {
-					window.wp.editor.remove(id);
-				} else if (id && window.tinymce) {
-					var editor = window.tinymce.get(id);
+		if (!body || !template) {
+			return;
+		}
+
+		const prepareRow = (row) => {
+			row.setAttribute('draggable', 'true');
+			row.addEventListener('dragstart', handleDragStart);
+			row.addEventListener('dragover', handleDragOver);
+			row.addEventListener('drop', handleDrop);
+			row.addEventListener('dragend', handleDragEnd);
+		};
+
+		$$('.nlf-faq-question-row', body).forEach(prepareRow);
+
+		if (addButton) {
+			addButton.addEventListener('click', (event) => {
+				event.preventDefault();
+				const index = $$('.nlf-faq-question-row', body).length;
+				const html = template.innerHTML.replace(/{{index}}/g, String(index)).trim();
+				const tempWrapper = doc.createElement('tbody');
+				tempWrapper.innerHTML = html;
+				const newRow = tempWrapper.firstElementChild;
+				body.appendChild(newRow);
+				prepareRow(newRow);
+				initNewEditor(newRow);
+				renumberGroupCheckboxes();
+			});
+		}
+
+		body.addEventListener('click', (event) => {
+			const removeButton = event.target.closest('.nlf-faq-remove-row');
+			if (!removeButton) {
+				return;
+			}
+
+			event.preventDefault();
+			const row = removeButton.closest('.nlf-faq-question-row');
+			if (!row) {
+				return;
+			}
+
+			const textarea = row.querySelector('.nlf-faq-group-answer-editor');
+			if (textarea && textarea.id) {
+				if (window.wp && window.wp.editor && typeof window.wp.editor.remove === 'function') {
+					window.wp.editor.remove(textarea.id);
+				} else if (window.tinymce) {
+					const editor = window.tinymce.get(textarea.id);
 					if (editor) {
 						editor.remove();
 					}
 				}
 			}
 
-			$row.remove();
+			row.remove();
 			renumberGroupCheckboxes();
-			// Refresh sortable after removing a row
-			$body.sortable('refresh');
 		});
-	});
-})(jQuery);
+	}
 
+	let dragSource = null;
+	let storedEditors = [];
 
+	function handleDragStart(event) {
+		dragSource = event.currentTarget;
+		dragSource.classList.add('is-dragging');
+		event.dataTransfer.effectAllowed = 'move';
+		event.dataTransfer.setData('text/plain', '');
+		storedEditors = removeEditors(dragSource);
+	}
+
+	function handleDragOver(event) {
+		event.preventDefault();
+		const target = event.currentTarget;
+		if (!dragSource || dragSource === target) {
+			return;
+		}
+
+		const body = target.parentElement;
+		const { top, height } = target.getBoundingClientRect();
+		const shouldInsertBefore = event.clientY < top + height / 2;
+
+		if (shouldInsertBefore) {
+			body.insertBefore(dragSource, target);
+		} else {
+			body.insertBefore(dragSource, target.nextElementSibling);
+		}
+	}
+
+	function handleDrop(event) {
+		event.preventDefault();
+	}
+
+	function handleDragEnd() {
+		if (!dragSource) {
+			return;
+		}
+		dragSource.classList.remove('is-dragging');
+		restoreEditors(dragSource, storedEditors);
+		storedEditors = [];
+		dragSource = null;
+		renumberGroupCheckboxes();
+	}
+
+	function removeEditors(row) {
+		const editors = [];
+		$$('textarea.nlf-faq-group-answer-editor', row).forEach((textarea) => {
+			const id = textarea.id;
+			if (!id || !window.tinymce) {
+				return;
+			}
+			const editor = window.tinymce.get(id);
+			if (editor) {
+				if (!editor.isHidden()) {
+					editor.save();
+				}
+				editor.remove();
+				editors.push(id);
+			}
+		});
+		return editors;
+	}
+
+	function restoreEditors(row, editorIds) {
+		if (!editorIds || !editorIds.length) {
+			return;
+		}
+
+		const editorAPI =
+			(window.wp && window.wp.oldEditor && typeof window.wp.oldEditor.initialize === 'function')
+				? window.wp.oldEditor
+				: (window.wp && window.wp.editor && typeof window.wp.editor.initialize === 'function' ? window.wp.editor : null);
+
+		if (!editorAPI) {
+			return;
+		}
+
+		editorIds.forEach((id) => {
+			const textarea = row.querySelector(`#${id}`);
+			if (!textarea) {
+				return;
+			}
+
+			editorAPI.initialize(id, {
+				tinymce: { wpautop: true },
+				quicktags: true,
+				mediaButtons: false,
+			});
+		});
+	}
+
+	doc.addEventListener('DOMContentLoaded', init);
+})();

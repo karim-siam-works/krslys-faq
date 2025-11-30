@@ -6,6 +6,8 @@
  */
 
 namespace Krslys\NextLevelFaq;
+use Krslys\NextLevelFaq\Admin_UI_Components;
+use Krslys\NextLevelFaq\Cache;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -70,6 +72,8 @@ class Group_CPT {
 		add_action( 'before_delete_post', array( __CLASS__, 'handle_delete' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_assets' ) );
 		add_action( 'wp_ajax_nlf_get_group_preview', array( __CLASS__, 'ajax_get_group_preview' ) );
+		add_filter( 'redirect_post_location', array( __CLASS__, 'append_save_notice_flag' ), 10, 2 );
+		add_action( 'admin_notices', array( __CLASS__, 'render_save_notice' ) );
 	}
 
 	/**
@@ -231,7 +235,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 					aria-labelledby="tab-appearance"
 					tabindex="0"
 					hidden>
-					<?php self::render_appearance_tab( $current_theme, $theme_custom, $use_custom_style, $custom_styles ); ?>
+					<?php self::render_appearance_tab( $post->ID, $items, $current_theme, $theme_custom, $use_custom_style, $custom_styles ); ?>
 				</div>
 
 				<!-- Preview Tab -->
@@ -258,6 +262,10 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	 */
 	private static function render_content_tab( $items, $settings ) {
 		?>
+		<?php if ( empty( $items ) ) : ?>
+			<?php Admin_UI_Components::onboarding_card(); ?>
+		<?php endif; ?>
+
 		<!-- FAQ Items Section -->
 		<div class="nlf-section">
 			<div class="nlf-section-header">
@@ -290,18 +298,16 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	private static function render_faq_items_table( $items ) {
 		if ( empty( $items ) ) {
 			// Empty state
-			?>
-			<div class="nlf-empty-state">
-				<div class="nlf-empty-icon">
-					<span class="dashicons dashicons-editor-help"></span>
-				</div>
-				<h3><?php esc_html_e( 'No questions yet', 'next-level-faq' ); ?></h3>
-				<p><?php esc_html_e( 'Add questions and answers that your visitors commonly ask.', 'next-level-faq' ); ?></p>
-				<button type="button" class="button button-primary button-hero" id="nlf-faq-group-add-row">
-					<?php esc_html_e( 'Add Your First Question', 'next-level-faq' ); ?>
-				</button>
-			</div>
-			<?php
+			Admin_UI_Components::empty_state(
+				array(
+					'title'       => __( 'No questions yet', 'next-level-faq' ),
+					'description' => __( 'Add questions and answers that your visitors commonly ask.', 'next-level-faq' ),
+					'primary'     => array(
+						'label' => __( 'Add Your First Question', 'next-level-faq' ),
+						'id'    => 'nlf-faq-group-add-row',
+					),
+				)
+			);
 		}
 		?>
 
@@ -428,34 +434,70 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	/**
 	 * Render Appearance tab (Themes + Style consolidated).
 	 *
+	 * @param int    $post_id          Post ID.
+	 * @param array  $items            FAQ items.
 	 * @param string $current_theme    Selected theme.
 	 * @param array  $theme_custom     Custom theme colors.
 	 * @param bool   $use_custom_style Whether to use custom styles.
 	 * @param array  $custom_styles    Custom style values.
 	 */
-	private static function render_appearance_tab( $current_theme, $theme_custom, $use_custom_style, $custom_styles ) {
+	private static function render_appearance_tab( $post_id, $items, $current_theme, $theme_custom, $use_custom_style, $custom_styles ) {
 		?>
 		<div class="nlf-appearance-wrapper">
-			<!-- Quick Style Section -->
-			<div class="nlf-section">
-				<div class="nlf-section-header">
-					<h3><?php esc_html_e( 'Theme Presets', 'next-level-faq' ); ?></h3>
-					<p class="description">
-						<?php esc_html_e( 'Choose a pre-designed theme to quickly style your FAQs.', 'next-level-faq' ); ?>
-					</p>
-				</div>
-				<?php self::render_theme_selector( $current_theme, $theme_custom ); ?>
-			</div>
+			<div class="nlf-appearance-layout">
+				<div class="nlf-appearance-controls">
+					<!-- Quick Style Section -->
+					<div class="nlf-section">
+						<div class="nlf-section-header">
+							<h3><?php esc_html_e( 'Theme Presets', 'next-level-faq' ); ?></h3>
+							<p class="description">
+								<?php esc_html_e( 'Choose a pre-designed theme to quickly style your FAQs.', 'next-level-faq' ); ?>
+							</p>
+						</div>
+						<?php self::render_theme_selector( $current_theme, $theme_custom ); ?>
+					</div>
 
-			<!-- Advanced Styles Section -->
-			<div class="nlf-section nlf-section-bordered">
-				<div class="nlf-section-header">
-					<h3><?php esc_html_e( 'Advanced Style Overrides', 'next-level-faq' ); ?></h3>
-					<p class="description">
-						<?php esc_html_e( 'Fine-tune every detail or override global styles for this group.', 'next-level-faq' ); ?>
-					</p>
+					<!-- Advanced Styles Section -->
+					<div class="nlf-section nlf-section-bordered">
+						<div class="nlf-section-header">
+							<h3><?php esc_html_e( 'Advanced Style Overrides', 'next-level-faq' ); ?></h3>
+							<p class="description">
+								<?php esc_html_e( 'Fine-tune every detail or override global styles for this group.', 'next-level-faq' ); ?>
+							</p>
+						</div>
+						<?php self::render_custom_styles( $use_custom_style, $custom_styles ); ?>
+					</div>
+
+					<div class="nlf-reset-row">
+						<button type="button" class="button button-secondary" data-reset="theme">
+							<?php esc_html_e( 'Reset Theme', 'next-level-faq' ); ?>
+						</button>
+						<button type="button" class="button button-secondary" data-reset="styles">
+							<?php esc_html_e( 'Reset Styles', 'next-level-faq' ); ?>
+						</button>
+					</div>
 				</div>
-				<?php self::render_custom_styles( $use_custom_style, $custom_styles ); ?>
+
+				<div class="nlf-appearance-preview">
+					<div class="nlf-preview-mini-header">
+						<h3><?php esc_html_e( 'Live Preview', 'next-level-faq' ); ?></h3>
+						<button type="button" class="button button-small" data-refresh-preview="appearance">
+							<span class="dashicons dashicons-update" aria-hidden="true"></span>
+							<?php esc_html_e( 'Refresh', 'next-level-faq' ); ?>
+						</button>
+					</div>
+					<p class="description"><?php esc_html_e( 'Changes update instantly as you tweak styles.', 'next-level-faq' ); ?></p>
+					<?php if ( empty( $items ) ) : ?>
+						<div class="nlf-preview-empty-state nlf-preview-empty-state--mini">
+							<p><?php esc_html_e( 'Add at least one question to see the live preview.', 'next-level-faq' ); ?></p>
+							<button type="button" class="button button-secondary" data-switch-tab="content">
+								<?php esc_html_e( 'Add questions first', 'next-level-faq' ); ?> →
+							</button>
+						</div>
+					<?php else : ?>
+						<?php Admin_UI_Components::preview_container( $post_id, 'appearance' ); ?>
+					<?php endif; ?>
+				</div>
 			</div>
 		</div>
 		<?php
@@ -470,75 +512,74 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	private static function render_theme_selector( $current_theme, $theme_custom ) {
 		$themes = self::get_theme_presets();
 		?>
-		<div class="nlf-themes-wrapper">
-			<h3><?php esc_html_e( 'Choose a Theme Preset', 'next-level-faq' ); ?></h3>
-			<p class="description">
-				<?php esc_html_e( 'Select a pre-designed theme and optionally customize its colors.', 'next-level-faq' ); ?>
-			</p>
-
-			<div class="nlf-theme-grid">
-				<?php foreach ( $themes as $theme_id => $theme_data ) : ?>
-					<div class="nlf-theme-card <?php echo ( $current_theme === $theme_id ) ? 'active' : ''; ?>" data-theme="<?php echo esc_attr( $theme_id ); ?>">
-						<input type="radio" name="nlf_faq_group_theme" value="<?php echo esc_attr( $theme_id ); ?>" <?php checked( $current_theme, $theme_id ); ?> id="theme_<?php echo esc_attr( $theme_id ); ?>" />
-						<label for="theme_<?php echo esc_attr( $theme_id ); ?>">
-							<div class="nlf-theme-preview" style="
-								background: <?php echo esc_attr( $theme_data['background'] ); ?>;
-								border-color: <?php echo esc_attr( $theme_data['border'] ); ?>;
-							">
-								<div class="nlf-theme-preview-question" style="color: <?php echo esc_attr( $theme_data['question'] ); ?>;">
-									<?php esc_html_e( 'Sample Question?', 'next-level-faq' ); ?>
-								</div>
-								<div class="nlf-theme-preview-answer" style="color: <?php echo esc_attr( $theme_data['answer'] ); ?>;">
-									<?php esc_html_e( 'Sample answer text...', 'next-level-faq' ); ?>
-								</div>
-								<div class="nlf-theme-preview-accent" style="background: <?php echo esc_attr( $theme_data['accent'] ); ?>;"></div>
+		<div class="nlf-theme-selector" role="radiogroup" aria-label="<?php esc_attr_e( 'Choose a theme preset', 'next-level-faq' ); ?>" data-default-theme="default">
+			<?php foreach ( $themes as $theme_id => $theme_data ) : ?>
+				<div class="nlf-theme-option <?php echo ( $current_theme === $theme_id ) ? 'is-active' : ''; ?>" data-theme="<?php echo esc_attr( $theme_id ); ?>">
+					<input type="radio" name="nlf_faq_group_theme" value="<?php echo esc_attr( $theme_id ); ?>" <?php checked( $current_theme, $theme_id ); ?> id="theme_<?php echo esc_attr( $theme_id ); ?>" />
+					<label for="theme_<?php echo esc_attr( $theme_id ); ?>">
+						<div class="nlf-theme-preview" style="
+							background: <?php echo esc_attr( $theme_data['background'] ); ?>;
+							border-color: <?php echo esc_attr( $theme_data['border'] ); ?>;
+						">
+							<div class="nlf-theme-preview-question" style="color: <?php echo esc_attr( $theme_data['question'] ); ?>;">
+								<?php esc_html_e( 'Sample Question?', 'next-level-faq' ); ?>
 							</div>
+							<div class="nlf-theme-preview-answer" style="color: <?php echo esc_attr( $theme_data['answer'] ); ?>;">
+								<?php esc_html_e( 'Sample answer text...', 'next-level-faq' ); ?>
+							</div>
+							<div class="nlf-theme-preview-accent" style="background: <?php echo esc_attr( $theme_data['accent'] ); ?>;"></div>
+						</div>
+						<div class="nlf-theme-info">
 							<div class="nlf-theme-name"><?php echo esc_html( $theme_data['name'] ); ?></div>
-						</label>
-					</div>
-				<?php endforeach; ?>
-			</div>
+							<p><?php echo esc_html( $theme_data['description'] ); ?></p>
+						</div>
+						<span class="nlf-theme-badge" aria-hidden="<?php echo ( $current_theme === $theme_id ) ? 'false' : 'true'; ?>">
+							<?php esc_html_e( 'Applied', 'next-level-faq' ); ?>
+						</span>
+					</label>
+				</div>
+			<?php endforeach; ?>
+		</div>
 
-			<div class="nlf-theme-customizer">
-				<h3><?php esc_html_e( 'Customize Colors', 'next-level-faq' ); ?></h3>
-				<p class="description">
-					<?php esc_html_e( 'Override theme colors with your own custom values.', 'next-level-faq' ); ?>
-				</p>
-				<table class="form-table">
-					<tr>
-						<th scope="row">
-							<label for="theme_custom_primary"><?php esc_html_e( 'Primary Color', 'next-level-faq' ); ?></label>
-						</th>
-						<td>
-							<input type="text" id="theme_custom_primary" name="nlf_faq_group_theme_custom[primary]" value="<?php echo esc_attr( $theme_custom['primary'] ?? '' ); ?>" class="nlf-color-picker" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="theme_custom_secondary"><?php esc_html_e( 'Secondary Color', 'next-level-faq' ); ?></label>
-						</th>
-						<td>
-							<input type="text" id="theme_custom_secondary" name="nlf_faq_group_theme_custom[secondary]" value="<?php echo esc_attr( $theme_custom['secondary'] ?? '' ); ?>" class="nlf-color-picker" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="theme_custom_accent"><?php esc_html_e( 'Accent Color', 'next-level-faq' ); ?></label>
-						</th>
-						<td>
-							<input type="text" id="theme_custom_accent" name="nlf_faq_group_theme_custom[accent]" value="<?php echo esc_attr( $theme_custom['accent'] ?? '' ); ?>" class="nlf-color-picker" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="theme_custom_background"><?php esc_html_e( 'Background Color', 'next-level-faq' ); ?></label>
-						</th>
-						<td>
-							<input type="text" id="theme_custom_background" name="nlf_faq_group_theme_custom[background]" value="<?php echo esc_attr( $theme_custom['background'] ?? '' ); ?>" class="nlf-color-picker" />
-						</td>
-					</tr>
-				</table>
-			</div>
+		<div class="nlf-theme-customizer" aria-live="polite">
+			<h4><?php esc_html_e( 'Customize Colors', 'next-level-faq' ); ?></h4>
+			<p class="description">
+				<?php esc_html_e( 'Override theme colors with your own custom values.', 'next-level-faq' ); ?>
+			</p>
+			<table class="form-table">
+				<tr>
+					<th scope="row">
+						<label for="theme_custom_primary"><?php esc_html_e( 'Primary Color', 'next-level-faq' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="theme_custom_primary" name="nlf_faq_group_theme_custom[primary]" value="<?php echo esc_attr( $theme_custom['primary'] ?? '' ); ?>" class="nlf-color-picker nlf-theme-color" data-color-key="primary" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="theme_custom_secondary"><?php esc_html_e( 'Secondary Color', 'next-level-faq' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="theme_custom_secondary" name="nlf_faq_group_theme_custom[secondary]" value="<?php echo esc_attr( $theme_custom['secondary'] ?? '' ); ?>" class="nlf-color-picker nlf-theme-color" data-color-key="secondary" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="theme_custom_accent"><?php esc_html_e( 'Accent Color', 'next-level-faq' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="theme_custom_accent" name="nlf_faq_group_theme_custom[accent]" value="<?php echo esc_attr( $theme_custom['accent'] ?? '' ); ?>" class="nlf-color-picker nlf-theme-color" data-color-key="accent" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="theme_custom_background"><?php esc_html_e( 'Background Color', 'next-level-faq' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="theme_custom_background" name="nlf_faq_group_theme_custom[background]" value="<?php echo esc_attr( $theme_custom['background'] ?? '' ); ?>" class="nlf-color-picker nlf-theme-color" data-color-key="background" />
+					</td>
+				</tr>
+			</table>
 		</div>
 		<?php
 	}
@@ -567,7 +608,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 							<input type="checkbox" id="setting_accordion_mode" name="nlf_faq_group_settings[accordion_mode]" value="1" <?php checked( ! empty( $settings['accordion_mode'] ) ); ?> />
 							<?php esc_html_e( 'Only allow one item to be open at a time', 'next-level-faq' ); ?>
 						</label>
-						<p class="nlf-help-text" id="accordion-help">
+					<p class="nlf-help-text" id="accordion-help" hidden>
 							<?php esc_html_e( 'When enabled, opening one item automatically closes all others. Perfect for keeping your FAQ section compact.', 'next-level-faq' ); ?>
 						</p>
 					</td>
@@ -587,7 +628,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 							<option value="first_open" <?php selected( $settings['initial_state'] ?? '', 'first_open' ); ?>><?php esc_html_e( 'First Item Open', 'next-level-faq' ); ?></option>
 							<option value="custom" <?php selected( $settings['initial_state'] ?? '', 'custom' ); ?>><?php esc_html_e( 'Custom (Use item settings)', 'next-level-faq' ); ?></option>
 						</select>
-						<p class="nlf-help-text" id="initial-help">
+					<p class="nlf-help-text" id="initial-help" hidden>
 							<?php esc_html_e( 'Choose how items should appear when the page loads. "Custom" uses the "Open by default" setting for each item.', 'next-level-faq' ); ?>
 						</p>
 					</td>
@@ -607,7 +648,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 							<option value="normal" <?php selected( $settings['animation_speed'] ?? 'normal', 'normal' ); ?>><?php esc_html_e( 'Normal (300ms)', 'next-level-faq' ); ?></option>
 							<option value="slow" <?php selected( $settings['animation_speed'] ?? '', 'slow' ); ?>><?php esc_html_e( 'Slow (500ms)', 'next-level-faq' ); ?></option>
 						</select>
-						<p class="nlf-help-text" id="animation-help">
+					<p class="nlf-help-text" id="animation-help" hidden>
 							<?php esc_html_e( 'Controls how quickly items expand and collapse. Normal works well for most sites.', 'next-level-faq' ); ?>
 						</p>
 					</td>
@@ -630,7 +671,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 							<input type="checkbox" id="setting_show_search" name="nlf_faq_group_settings[show_search]" value="1" <?php checked( ! empty( $settings['show_search'] ) ); ?> />
 							<?php esc_html_e( 'Show search box above FAQ items', 'next-level-faq' ); ?>
 						</label>
-						<p class="nlf-help-text" id="search-help">
+					<p class="nlf-help-text" id="search-help" hidden>
 							<?php esc_html_e( 'Adds a live search box that filters questions and answers as visitors type.', 'next-level-faq' ); ?>
 						</p>
 					</td>
@@ -649,7 +690,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 							<input type="checkbox" id="setting_show_counter" name="nlf_faq_group_settings[show_counter]" value="1" <?php checked( ! empty( $settings['show_counter'] ) ); ?> />
 							<?php esc_html_e( 'Display item numbers (e.g., 1., 2., 3.)', 'next-level-faq' ); ?>
 						</label>
-						<p class="nlf-help-text" id="counter-help">
+					<p class="nlf-help-text" id="counter-help" hidden>
 							<?php esc_html_e( 'Shows numbered labels before each question for easy reference.', 'next-level-faq' ); ?>
 						</p>
 					</td>
@@ -668,7 +709,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 							<input type="checkbox" id="setting_smooth_scroll" name="nlf_faq_group_settings[smooth_scroll]" value="1" <?php checked( ! empty( $settings['smooth_scroll'] ) ); ?> />
 							<?php esc_html_e( 'Scroll to item when opened via URL hash', 'next-level-faq' ); ?>
 						</label>
-						<p class="nlf-help-text" id="scroll-help">
+					<p class="nlf-help-text" id="scroll-help" hidden>
 							<?php esc_html_e( 'Smoothly scrolls opened items into view, helpful when linking directly to specific questions.', 'next-level-faq' ); ?>
 						</p>
 					</td>
@@ -685,6 +726,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	 * @param array $custom_styles    Custom style values.
 	 */
 	private static function render_custom_styles( $use_custom_style, $custom_styles ) {
+		$default_styles = Options::get_defaults();
 		?>
 		<div class="nlf-style-wrapper">
 			<div class="nlf-style-toggle">
@@ -697,7 +739,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 				</p>
 			</div>
 
-			<div class="nlf-custom-style-fields" style="<?php echo empty( $use_custom_style ) ? 'display: none;' : ''; ?>">
+			<div class="nlf-custom-style-fields" style="<?php echo empty( $use_custom_style ) ? 'display: none;' : ''; ?>" data-default-styles="<?php echo esc_attr( wp_json_encode( $default_styles ) ); ?>">
 				<h3><?php esc_html_e( 'Container', 'next-level-faq' ); ?></h3>
 				<table class="form-table">
 					<tr>
@@ -822,19 +864,19 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	private static function render_preview_tab( $post_id, $items ) {
 		?>
 		<div class="nlf-preview-wrapper">
-			<?php if ( empty( $items ) ) : ?>
-				<!-- Empty State -->
-				<div class="nlf-preview-empty-state">
-					<div class="nlf-empty-icon">
-						<span class="dashicons dashicons-visibility"></span>
-					</div>
-					<h3><?php esc_html_e( 'Preview will appear after you add items', 'next-level-faq' ); ?></h3>
-					<p><?php esc_html_e( 'Add at least one question in the Content tab, then return here to see how it looks.', 'next-level-faq' ); ?></p>
-					<button type="button" class="button button-primary" data-switch-tab="content">
-						<?php esc_html_e( 'Go to Content Tab', 'next-level-faq' ); ?> →
-					</button>
-				</div>
-			<?php else : ?>
+	<?php if ( empty( $items ) ) : ?>
+		<!-- Empty State -->
+		<div class="nlf-preview-empty-state">
+			<div class="nlf-empty-icon">
+				<span class="dashicons dashicons-visibility"></span>
+			</div>
+			<h3><?php esc_html_e( 'Preview will appear after you add items', 'next-level-faq' ); ?></h3>
+			<p><?php esc_html_e( 'Add at least one question in the Content tab, then return here to see how it looks.', 'next-level-faq' ); ?></p>
+			<button type="button" class="button button-primary" data-switch-tab="content">
+				<?php esc_html_e( 'Go to Content Tab', 'next-level-faq' ); ?> →
+			</button>
+		</div>
+	<?php else : ?>
 				<div class="nlf-preview-controls">
 					<div class="nlf-preview-device-toggle" role="radiogroup" aria-label="<?php esc_attr_e( 'Preview device', 'next-level-faq' ); ?>">
 						<button type="button" class="nlf-device-btn active" data-device="desktop" aria-label="<?php esc_attr_e( 'Desktop view', 'next-level-faq' ); ?>">
@@ -847,7 +889,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 							<span class="dashicons dashicons-smartphone" aria-hidden="true"></span>
 						</button>
 					</div>
-					<button type="button" class="button nlf-refresh-preview" id="nlf-manual-refresh">
+		<button type="button" class="button nlf-refresh-preview" data-refresh-preview="main">
 						<span class="dashicons dashicons-update" aria-hidden="true"></span>
 						<?php esc_html_e( 'Refresh Preview', 'next-level-faq' ); ?>
 					</button>
@@ -859,28 +901,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 				</div>
 
 				<div class="nlf-preview-viewport" data-device="desktop">
-					<div class="nlf-preview-container" data-group-id="<?php echo esc_attr( $post_id ); ?>">
-						<!-- Loading Skeleton -->
-						<div class="nlf-preview-loading">
-							<div class="nlf-skeleton-faq">
-								<div class="nlf-skeleton-line nlf-skeleton-title"></div>
-								<div class="nlf-skeleton-item">
-									<div class="nlf-skeleton-line nlf-skeleton-question"></div>
-									<div class="nlf-skeleton-line nlf-skeleton-answer"></div>
-								</div>
-								<div class="nlf-skeleton-item">
-									<div class="nlf-skeleton-line nlf-skeleton-question"></div>
-									<div class="nlf-skeleton-line nlf-skeleton-answer"></div>
-								</div>
-								<div class="nlf-skeleton-item">
-									<div class="nlf-skeleton-line nlf-skeleton-question"></div>
-									<div class="nlf-skeleton-line nlf-skeleton-answer"></div>
-								</div>
-							</div>
-						</div>
-						<!-- Preview Content -->
-						<div class="nlf-preview-content"></div>
-					</div>
+			<?php Admin_UI_Components::preview_container( $post_id, 'main' ); ?>
 				</div>
 			<?php endif; ?>
 		</div>
@@ -896,6 +917,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 		return array(
 			'default'      => array(
 				'name'       => __( 'Default', 'next-level-faq' ),
+				'description'=> __( 'Clean and professional look for most sites.', 'next-level-faq' ),
 				'background' => '#ffffff',
 				'border'     => '#e2e8f0',
 				'question'   => '#0f172a',
@@ -904,6 +926,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 			),
 			'modern'       => array(
 				'name'       => __( 'Modern', 'next-level-faq' ),
+				'description'=> __( 'Soft gradients and cool blue accents.', 'next-level-faq' ),
 				'background' => '#f8fafc',
 				'border'     => '#cbd5e1',
 				'question'   => '#1e293b',
@@ -912,6 +935,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 			),
 			'classic'      => array(
 				'name'       => __( 'Classic', 'next-level-faq' ),
+				'description'=> __( 'Warm tones inspired by editorial layouts.', 'next-level-faq' ),
 				'background' => '#fefce8',
 				'border'     => '#fde047',
 				'question'   => '#713f12',
@@ -920,6 +944,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 			),
 			'minimal'      => array(
 				'name'       => __( 'Minimal', 'next-level-faq' ),
+				'description'=> __( 'High-contrast monochrome aesthetic.', 'next-level-faq' ),
 				'background' => '#fafafa',
 				'border'     => '#e5e5e5',
 				'question'   => '#171717',
@@ -928,6 +953,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 			),
 			'bold'         => array(
 				'name'       => __( 'Bold', 'next-level-faq' ),
+				'description'=> __( 'Vibrant reds for high-impact brands.', 'next-level-faq' ),
 				'background' => '#fef2f2',
 				'border'     => '#fca5a5',
 				'question'   => '#7f1d1d',
@@ -936,6 +962,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 			),
 			'professional' => array(
 				'name'       => __( 'Professional', 'next-level-faq' ),
+				'description'=> __( 'Cool blues inspired by SaaS dashboards.', 'next-level-faq' ),
 				'background' => '#f0f9ff',
 				'border'     => '#bae6fd',
 				'question'   => '#082f49',
@@ -1065,6 +1092,7 @@ public static function save_metabox( $post_id, $post ) {
 				Style_Generator::delete_group_css( $post_id );
 			}
 		}
+		Cache::invalidate_group( $post_id );
 	}
 
 	/**
@@ -1082,6 +1110,7 @@ public static function handle_delete( $post_id ) {
 		}
 
 		Repository::delete_items_for_group( $post_id );
+		Cache::invalidate_group( $post_id );
 	}
 
 	/**
@@ -1159,5 +1188,53 @@ public static function handle_delete( $post_id ) {
 		$html = ob_get_clean();
 
 		wp_send_json_success( array( 'html' => $html ) );
+	}
+
+	/**
+	 * Append custom notice flag after saving.
+	 *
+	 * @param string $location Redirect URL.
+	 * @param int    $post_id  Post ID.
+	 *
+	 * @return string
+	 */
+	public static function append_save_notice_flag( $location, $post_id ) {
+		if ( self::POST_TYPE !== get_post_type( $post_id ) ) {
+			return $location;
+		}
+
+		return add_query_arg( 'nlf_group_saved', '1', $location );
+	}
+
+	/**
+	 * Render contextual success message.
+	 */
+	public static function render_save_notice() {
+		if ( ! isset( $_GET['nlf_group_saved'] ) || '1' !== $_GET['nlf_group_saved'] ) {
+			return;
+		}
+
+		$screen = get_current_screen();
+
+		if ( ! $screen || 'post' !== $screen->base || self::POST_TYPE !== $screen->post_type ) {
+			return;
+		}
+
+		$post_id   = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
+		$permalink = $post_id ? get_permalink( $post_id ) : '';
+		?>
+		<div class="notice notice-success is-dismissible nlf-success-banner">
+			<p>
+				<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
+				<strong><?php esc_html_e( 'FAQ group updated.', 'next-level-faq' ); ?></strong>
+				<?php esc_html_e( 'Your changes are now live.', 'next-level-faq' ); ?>
+				<?php if ( $permalink ) : ?>
+					<a href="<?php echo esc_url( $permalink ); ?>" target="_blank" rel="noopener noreferrer">
+						<?php esc_html_e( 'View on site', 'next-level-faq' ); ?> →
+					</a>
+				<?php endif; ?>
+			</p>
+		</div>
+		<?php
 	}
 }

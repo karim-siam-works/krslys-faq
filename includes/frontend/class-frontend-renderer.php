@@ -156,6 +156,21 @@ public static function render_shortcode( $atts, $content = '' ) {
 			$items = array();
 		}
 
+		$cache_context = array(
+			'atts'     => array(
+				'title' => $atts['title'],
+			),
+			'settings' => $settings,
+		);
+
+		if ( $group_id > 0 ) {
+			$cached_output = Cache::get_rendered_group( $group_id, $cache_context );
+
+			if ( $cached_output ) {
+				return $cached_output;
+			}
+		}
+
 		$faq_classes = array( 'nlf-faq' );
 		if ( ! empty( $settings['accordion_mode'] ) ) {
 			$faq_classes[] = 'nlf-faq--accordion';
@@ -221,7 +236,13 @@ public static function render_shortcode( $atts, $content = '' ) {
 		</div>
 		<?php
 
-		return trim( ob_get_clean() );
+		$output = trim( ob_get_clean() );
+
+		if ( $group_id > 0 ) {
+			Cache::set_rendered_group( $group_id, $cache_context, $output );
+		}
+
+		return $output;
 	}
 
 	/**

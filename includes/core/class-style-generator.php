@@ -534,7 +534,12 @@ class Style_Generator {
 			FS_CHMOD_FILE
 		);
 
-		return false !== $result;
+		if ( false !== $result ) {
+			Cache::invalidate_group( $group_id );
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -584,6 +589,12 @@ class Style_Generator {
 			$wp_path = str_replace( ABSPATH, trailingslashit( FTP_BASE ), $path );
 		}
 
-		return $wp_filesystem->delete( $wp_path );
+		$deleted = $wp_filesystem->delete( $wp_path );
+
+		if ( $deleted ) {
+			Cache::invalidate_group( $group_id );
+		}
+
+		return $deleted;
 	}
 }
