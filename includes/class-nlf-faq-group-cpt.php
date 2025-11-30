@@ -1,7 +1,17 @@
 <?php
+/**
+ * FAQ Group custom post type.
+ *
+ * @package Krslys\NextLevelFaq
+ */
+
+namespace Krslys\NextLevelFaq;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+use WP_Post;
 
 /**
  * FAQ Group custom post type.
@@ -15,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - Input sanitization via sanitize_text_field() and wp_kses_post().
  * - Output escaping via esc_attr(), esc_html().
  */
-class NLF_Faq_Group_CPT {
+class Group_CPT {
 
 	const POST_TYPE = 'nlf_faq_group';
 
@@ -124,7 +134,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 public static function render_metabox( $post ) {
 	wp_nonce_field( 'nlf_faq_group_save', 'nlf_faq_group_nonce' );
 
-		$items = NLF_Faq_Repository::get_items_for_group( $post->ID, false );
+		$items = Repository::get_items_for_group( $post->ID, false );
 		?>
 		<p class="description">
 			<?php esc_html_e( 'Add multiple questions and answers to this FAQ group. Control visibility, default open state, and highlight notable items.', 'next-level-faq' ); ?>
@@ -304,11 +314,11 @@ public static function save_metabox( $post_id, $post ) {
 			$initial_state = isset( $open[ (string) $i ] ) ? 1 : 0;
 			$is_highlight  = isset( $highlight[ (string) $i ] ) ? 1 : 0;
 
-			$new_id     = NLF_Faq_Repository::save_item( $id, $post_id, $question, $answer, $status, $i, $initial_state, $is_highlight );
+			$new_id     = Repository::save_item( $id, $post_id, $question, $answer, $status, $i, $initial_state, $is_highlight );
 			$keep_ids[] = $new_id;
 		}
 
-		NLF_Faq_Repository::delete_all_except( $keep_ids, $post_id );
+		Repository::delete_all_except( $keep_ids, $post_id );
 	}
 
 	/**
@@ -325,6 +335,6 @@ public static function handle_delete( $post_id ) {
 			return;
 		}
 
-		NLF_Faq_Repository::delete_items_for_group( $post_id );
+		Repository::delete_items_for_group( $post_id );
 	}
 }

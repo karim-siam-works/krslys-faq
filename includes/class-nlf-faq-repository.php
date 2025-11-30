@@ -1,4 +1,12 @@
 <?php
+/**
+ * Data access layer for FAQ items stored in a custom table.
+ *
+ * @package Krslys\NextLevelFaq
+ */
+
+namespace Krslys\NextLevelFaq;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -9,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * SECURITY: All database operations use $wpdb->prepare() for dynamic values.
  * Table and column names are escaped using esc_sql() where needed.
  */
-class NLF_Faq_Repository {
+class Repository {
 
 	/**
 	 * Get table name.

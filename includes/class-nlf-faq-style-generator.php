@@ -1,4 +1,12 @@
 <?php
+/**
+ * Builds and stores generated CSS for FAQ styles.
+ *
+ * @package Krslys\NextLevelFaq
+ */
+
+namespace Krslys\NextLevelFaq;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -11,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - Validates directory paths and file permissions.
  * - Sanitizes all CSS values via esc_html().
  */
-class NLF_Faq_Style_Generator {
+class Style_Generator {
 
 	/**
 	 * Get path to generated CSS file.
@@ -49,7 +57,7 @@ class NLF_Faq_Style_Generator {
 	 * @return string
 	 */
 	public static function build_css( $options ) {
-		$o = wp_parse_args( $options, NLF_Faq_Options::get_defaults() );
+		$o = wp_parse_args( $options, Options::get_defaults() );
 
 		// Convert px to rem (base: 16px = 1rem).
 		$border_radius_rem = round( intval( $o['container_border_radius'] ) / 16, 3 );
@@ -341,7 +349,7 @@ class NLF_Faq_Style_Generator {
 	 * @return bool True on success, false on failure.
 	 */
 	public static function generate_and_save() {
-		$options = NLF_Faq_Options::get_options();
+		$options = Options::get_options();
 		$css     = self::build_css( $options );
 		$path    = self::get_css_file_path();
 

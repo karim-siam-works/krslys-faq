@@ -1,4 +1,12 @@
 <?php
+/**
+ * Handles FAQ style options.
+ *
+ * @package Krslys\NextLevelFaq
+ */
+
+namespace Krslys\NextLevelFaq;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -12,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - String values validated against allowlists.
  * - No direct user input accepted without sanitization.
  */
-class NLF_Faq_Options {
+class Options {
 
 	const OPTION_KEY = 'nlf_faq_style_options';
 
@@ -138,8 +146,8 @@ class NLF_Faq_Options {
 			add_option( self::OPTION_KEY, self::get_defaults() );
 		}
 
-		if ( class_exists( 'NLF_Faq_Style_Generator' ) ) {
-			NLF_Faq_Style_Generator::generate_and_save();
+		if ( class_exists( 'Krslys\NextLevelFaq\Style_Generator' ) ) {
+			Style_Generator::generate_and_save();
 		}
 	}
 }

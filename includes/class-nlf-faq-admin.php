@@ -1,4 +1,12 @@
 <?php
+/**
+ * Admin settings page and assets.
+ *
+ * @package Krslys\NextLevelFaq
+ */
+
+namespace Krslys\NextLevelFaq;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -13,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - All inputs sanitized, all outputs escaped.
  * - Uses WordPress Filesystem API for file operations.
  */
-class NLF_Faq_Admin {
+class Admin {
 
 	/**
 	 * Top-level menu slug.
@@ -83,9 +91,9 @@ class NLF_Faq_Admin {
 	public static function register_settings() {
 		register_setting(
 			'nlf_faq_style_group',
-			NLF_Faq_Options::OPTION_KEY,
+			Options::OPTION_KEY,
 			array(
-				'sanitize_callback' => array( 'NLF_Faq_Options', 'sanitize' ),
+				'sanitize_callback' => array( 'Krslys\NextLevelFaq\Options', 'sanitize' ),
 			)
 		);
 	}
@@ -174,7 +182,7 @@ public static function enqueue_assets( $hook_suffix ) {
 			return;
 		}
 
-		$options = NLF_Faq_Options::get_options();
+		$options = Options::get_options();
 		?>
 		<div class="wrap nlf-faq-admin">
 			<h1><?php esc_html_e( 'Next Level FAQ – Style & Layout', 'next-level-faq' ); ?></h1>
@@ -194,7 +202,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_container_background"><?php esc_html_e( 'Container background', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="text" class="nlf-color-field" id="nlf_faq_container_background" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[container_background]" value="<?php echo esc_attr( $options['container_background'] ); ?>" data-preview-prop="container_background">
+									<input type="text" class="nlf-color-field" id="nlf_faq_container_background" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[container_background]" value="<?php echo esc_attr( $options['container_background'] ); ?>" data-preview-prop="container_background">
 								</td>
 							</tr>
 							<tr>
@@ -202,7 +210,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_container_border_color"><?php esc_html_e( 'Border color', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="text" class="nlf-color-field" id="nlf_faq_container_border_color" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[container_border_color]" value="<?php echo esc_attr( $options['container_border_color'] ); ?>" data-preview-prop="container_border_color">
+									<input type="text" class="nlf-color-field" id="nlf_faq_container_border_color" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[container_border_color]" value="<?php echo esc_attr( $options['container_border_color'] ); ?>" data-preview-prop="container_border_color">
 								</td>
 							</tr>
 							<tr>
@@ -210,7 +218,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_container_border_radius"><?php esc_html_e( 'Border radius (px)', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" min="0" id="nlf_faq_container_border_radius" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[container_border_radius]" value="<?php echo esc_attr( $options['container_border_radius'] ); ?>" data-preview-prop="container_border_radius">
+									<input type="number" min="0" id="nlf_faq_container_border_radius" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[container_border_radius]" value="<?php echo esc_attr( $options['container_border_radius'] ); ?>" data-preview-prop="container_border_radius">
 								</td>
 							</tr>
 							<tr>
@@ -218,14 +226,14 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_container_padding"><?php esc_html_e( 'Padding (px)', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" min="0" id="nlf_faq_container_padding" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[container_padding]" value="<?php echo esc_attr( $options['container_padding'] ); ?>" data-preview-prop="container_padding">
+									<input type="number" min="0" id="nlf_faq_container_padding" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[container_padding]" value="<?php echo esc_attr( $options['container_padding'] ); ?>" data-preview-prop="container_padding">
 								</td>
 							</tr>
 							<tr>
 								<th scope="row"><?php esc_html_e( 'Shadow', 'next-level-faq' ); ?></th>
 								<td>
 									<label>
-										<input type="checkbox" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[shadow]" value="1" <?php checked( $options['shadow'], true ); ?> data-preview-prop="shadow">
+										<input type="checkbox" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[shadow]" value="1" <?php checked( $options['shadow'], true ); ?> data-preview-prop="shadow">
 										<?php esc_html_e( 'Enable subtle card shadow', 'next-level-faq' ); ?>
 									</label>
 								</td>
@@ -239,7 +247,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_question_color"><?php esc_html_e( 'Question color', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="text" class="nlf-color-field" id="nlf_faq_question_color" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[question_color]" value="<?php echo esc_attr( $options['question_color'] ); ?>" data-preview-prop="question_color">
+									<input type="text" class="nlf-color-field" id="nlf_faq_question_color" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[question_color]" value="<?php echo esc_attr( $options['question_color'] ); ?>" data-preview-prop="question_color">
 								</td>
 							</tr>
 							<tr>
@@ -247,7 +255,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_question_font_size"><?php esc_html_e( 'Font size (px)', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" min="10" id="nlf_faq_question_font_size" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[question_font_size]" value="<?php echo esc_attr( $options['question_font_size'] ); ?>" data-preview-prop="question_font_size">
+									<input type="number" min="10" id="nlf_faq_question_font_size" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[question_font_size]" value="<?php echo esc_attr( $options['question_font_size'] ); ?>" data-preview-prop="question_font_size">
 								</td>
 							</tr>
 							<tr>
@@ -255,7 +263,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_question_font_weight"><?php esc_html_e( 'Font weight', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" step="100" min="100" max="900" id="nlf_faq_question_font_weight" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[question_font_weight]" value="<?php echo esc_attr( $options['question_font_weight'] ); ?>" data-preview-prop="question_font_weight">
+									<input type="number" step="100" min="100" max="900" id="nlf_faq_question_font_weight" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[question_font_weight]" value="<?php echo esc_attr( $options['question_font_weight'] ); ?>" data-preview-prop="question_font_weight">
 								</td>
 							</tr>
 						</table>
@@ -267,7 +275,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_answer_color"><?php esc_html_e( 'Answer color', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="text" class="nlf-color-field" id="nlf_faq_answer_color" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[answer_color]" value="<?php echo esc_attr( $options['answer_color'] ); ?>" data-preview-prop="answer_color">
+									<input type="text" class="nlf-color-field" id="nlf_faq_answer_color" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[answer_color]" value="<?php echo esc_attr( $options['answer_color'] ); ?>" data-preview-prop="answer_color">
 								</td>
 							</tr>
 							<tr>
@@ -275,7 +283,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_answer_font_size"><?php esc_html_e( 'Font size (px)', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" min="10" id="nlf_faq_answer_font_size" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[answer_font_size]" value="<?php echo esc_attr( $options['answer_font_size'] ); ?>" data-preview-prop="answer_font_size">
+									<input type="number" min="10" id="nlf_faq_answer_font_size" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[answer_font_size]" value="<?php echo esc_attr( $options['answer_font_size'] ); ?>" data-preview-prop="answer_font_size">
 								</td>
 							</tr>
 						</table>
@@ -287,7 +295,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_accent_color"><?php esc_html_e( 'Accent color', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="text" class="nlf-color-field" id="nlf_faq_accent_color" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[accent_color]" value="<?php echo esc_attr( $options['accent_color'] ); ?>" data-preview-prop="accent_color">
+									<input type="text" class="nlf-color-field" id="nlf_faq_accent_color" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[accent_color]" value="<?php echo esc_attr( $options['accent_color'] ); ?>" data-preview-prop="accent_color">
 								</td>
 							</tr>
 							<tr>
@@ -295,7 +303,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_icon_style"><?php esc_html_e( 'Icon style', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<select id="nlf_faq_icon_style" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[icon_style]" data-preview-prop="icon_style">
+									<select id="nlf_faq_icon_style" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[icon_style]" data-preview-prop="icon_style">
 										<option value="plus_minus" <?php selected( $options['icon_style'], 'plus_minus' ); ?>><?php esc_html_e( 'Plus / Minus', 'next-level-faq' ); ?></option>
 										<option value="chevron" <?php selected( $options['icon_style'], 'chevron' ); ?>><?php esc_html_e( 'Chevron', 'next-level-faq' ); ?></option>
 									</select>
@@ -306,7 +314,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_gap_between_items"><?php esc_html_e( 'Gap between items (px)', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" min="0" id="nlf_faq_gap_between_items" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[gap_between_items]" value="<?php echo esc_attr( $options['gap_between_items'] ); ?>" data-preview-prop="gap_between_items">
+									<input type="number" min="0" id="nlf_faq_gap_between_items" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[gap_between_items]" value="<?php echo esc_attr( $options['gap_between_items'] ); ?>" data-preview-prop="gap_between_items">
 								</td>
 							</tr>
 							<tr>
@@ -314,7 +322,7 @@ public static function enqueue_assets( $hook_suffix ) {
 									<label for="nlf_faq_animation"><?php esc_html_e( 'Animation', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<select id="nlf_faq_animation" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[animation]" data-preview-prop="animation">
+									<select id="nlf_faq_animation" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[animation]" data-preview-prop="animation">
 										<option value="slide" <?php selected( $options['animation'], 'slide' ); ?>><?php esc_html_e( 'Slide', 'next-level-faq' ); ?></option>
 										<option value="fade" <?php selected( $options['animation'], 'fade' ); ?>><?php esc_html_e( 'Fade', 'next-level-faq' ); ?></option>
 										<option value="none" <?php selected( $options['animation'], 'none' ); ?>><?php esc_html_e( 'None', 'next-level-faq' ); ?></option>
@@ -384,7 +392,7 @@ public static function enqueue_assets( $hook_suffix ) {
 			return;
 		}
 
-		$items = NLF_Faq_Repository::get_all_items( 0 );
+		$items = Repository::get_all_items( 0 );
 		?>
 		<div class="wrap nlf-faq-admin">
 			<h1><?php esc_html_e( 'Next Level FAQ – Questions', 'next-level-faq' ); ?></h1>
@@ -596,11 +604,11 @@ public static function handle_save_questions() {
 
 			$status   = isset( $active[ (string) $i ] ) ? 1 : 0;
 
-			$new_id     = NLF_Faq_Repository::save_item( $id, 0, $question, $answer, $status, $i );
+			$new_id     = Repository::save_item( $id, 0, $question, $answer, $status, $i );
 			$keep_ids[] = $new_id;
 		}
 
-		NLF_Faq_Repository::delete_all_except( $keep_ids, 0 );
+		Repository::delete_all_except( $keep_ids, 0 );
 
 		$redirect = add_query_arg(
 			array(
@@ -655,14 +663,14 @@ public static function handle_export() {
 		);
 
 		if ( $include_styles ) {
-			$payload['styles'] = NLF_Faq_Options::get_options();
+			$payload['styles'] = Options::get_options();
 		}
 
 		if ( $include_questions ) {
 			$payload['meta']['group_scope']       = null === $group_scope ? 'all' : (int) $group_scope;
 			$payload['meta']['group_scope_label'] = self::get_group_label( $group_scope );
 			$payload['faqs']                      = self::group_faq_export_items(
-				NLF_Faq_Repository::get_all_items_for_export( $group_scope )
+				Repository::get_all_items_for_export( $group_scope )
 		);
 	}
 
@@ -754,7 +762,7 @@ public static function handle_import() {
 		$faq_entries = self::normalize_import_faqs( $data['faqs'] ?? array() );
 		if ( ! empty( $faq_entries ) ) {
 			if ( $replace_existing ) {
-				NLF_Faq_Repository::delete_all_items();
+				Repository::delete_all_items();
 			}
 
 			foreach ( $faq_entries as $index => $item ) {
@@ -778,7 +786,7 @@ public static function handle_import() {
 				$initial_state = isset( $item['initial_state'] ) ? absint( $item['initial_state'] ) : 0;
 				$highlight     = isset( $item['highlight'] ) ? absint( $item['highlight'] ) : 0;
 
-				NLF_Faq_Repository::save_item(
+				Repository::save_item(
 					0,
 					$group_id,
 					$question,
@@ -794,8 +802,8 @@ public static function handle_import() {
 	}
 
 	if ( isset( $data['styles'] ) && is_array( $data['styles'] ) ) {
-		$sanitized = NLF_Faq_Options::sanitize( $data['styles'] );
-			update_option( NLF_Faq_Options::OPTION_KEY, $sanitized );
+		$sanitized = Options::sanitize( $data['styles'] );
+			update_option( Options::OPTION_KEY, $sanitized );
 			$styles_applied = true;
 		}
 
@@ -1225,7 +1233,7 @@ private static function store_tools_notice( $type, $message ) {
 
 		$groups = get_posts(
 			array(
-				'post_type'      => NLF_Faq_Group_CPT::POST_TYPE,
+				'post_type'      => Group_CPT::POST_TYPE,
 				'post_status'    => array( 'publish', 'pending', 'draft', 'future' ),
 				'posts_per_page' => -1,
 				'orderby'        => 'title',
@@ -1262,7 +1270,7 @@ private static function store_tools_notice( $type, $message ) {
 
 		$post = get_post( (int) $group_id );
 
-		if ( $post && NLF_Faq_Group_CPT::POST_TYPE === $post->post_type ) {
+		if ( $post && Group_CPT::POST_TYPE === $post->post_type ) {
 			$title = trim( get_the_title( $post ) );
 
 			return '' !== $title

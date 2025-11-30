@@ -1,7 +1,17 @@
 <?php
+/**
+ * Front-end rendering and assets.
+ *
+ * @package Krslys\NextLevelFaq
+ */
+
+namespace Krslys\NextLevelFaq;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+use WP_Post;
 
 /**
  * Front-end rendering and assets.
@@ -11,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - All output properly escaped.
  * - No direct user input accepted without validation.
  */
-class NLF_Faq_Frontend {
+class Frontend {
 
 	/**
 	 * Register shortcodes.
@@ -26,8 +36,8 @@ class NLF_Faq_Frontend {
 	 * SECURITY: Uses esc_url_raw() for CSS URL.
 	 */
 	public static function enqueue_styles() {
-		$css_path = NLF_Faq_Style_Generator::get_css_file_path();
-		$css_url  = NLF_Faq_Style_Generator::get_css_file_url();
+		$css_path = Style_Generator::get_css_file_path();
+		$css_url  = Style_Generator::get_css_file_url();
 
 	$uploads = wp_upload_dir();
 	$baseurl = isset( $uploads['baseurl'] ) ? trailingslashit( $uploads['baseurl'] ) : '';
@@ -85,7 +95,7 @@ public static function render_shortcode( $atts, $content = '' ) {
 			}
 		}
 
-		$items = NLF_Faq_Repository::get_all_published_faqs( $group_id );
+		$items = Repository::get_all_published_faqs( $group_id );
 
 		if ( ! is_array( $items ) ) {
 			$items = array();

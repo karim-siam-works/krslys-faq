@@ -19,22 +19,31 @@ define( 'NLF_FAQ_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'NLF_FAQ_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'NLF_FAQ_DB_VERSION', '1.3.0' );
 
+// Load PSR-4 autoloader.
+require_once NLF_FAQ_PLUGIN_DIR . 'includes/Autoloader.php';
+
+// Initialize autoloader.
+$autoloader = new Krslys\NextLevelFaq\Autoloader( NLF_FAQ_PLUGIN_DIR . 'includes' );
+$autoloader->register();
+
+namespace Krslys\NextLevelFaq;
+
 /**
  * Main plugin class.
  */
-final class NLF_Faq_Plugin {
+final class Plugin {
 
 	/**
 	 * Singleton instance.
 	 *
-	 * @var NLF_Faq_Plugin|null
+	 * @var Plugin|null
 	 */
 	private static $instance = null;
 
 	/**
 	 * Get singleton instance.
 	 *
-	 * @return NLF_Faq_Plugin
+	 * @return Plugin
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -54,36 +63,32 @@ final class NLF_Faq_Plugin {
 
 	/**
 	 * Load required files.
+	 * 
+	 * Note: Files are now loaded automatically via PSR-4 autoloader.
 	 */
 	private function includes() {
-		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-options.php';
-		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-style-generator.php';
-		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-repository.php';
-		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-group-cpt.php';
-		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-admin.php';
-		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-frontend.php';
-		require_once NLF_FAQ_PLUGIN_DIR . 'includes/class-nlf-faq-cpt.php';
+		// Classes are autoloaded, no manual includes needed.
 	}
 
 	/**
 	 * Register hooks.
 	 */
 	private function hooks() {
-		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( 'NLF_Faq_Options', 'activate' ) );
-		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( 'NLF_Faq_Repository', 'maybe_create_table' ) );
+		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( '\Krslys\NextLevelFaq\Options', 'activate' ) );
+		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( '\Krslys\NextLevelFaq\Repository', 'maybe_create_table' ) );
 
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-		add_action( 'plugins_loaded', array( 'NLF_Faq_Repository', 'maybe_create_table' ) );
-		add_action( 'init', array( 'NLF_Faq_Group_CPT', 'register' ) );
-		add_action( 'init', array( 'NLF_Faq_Frontend', 'register_shortcodes' ) );
-		add_action( 'wp_enqueue_scripts', array( 'NLF_Faq_Frontend', 'enqueue_styles' ) );
-		add_action( 'admin_menu', array( 'NLF_Faq_Admin', 'register_menu' ) );
-		add_action( 'admin_init', array( 'NLF_Faq_Admin', 'register_settings' ) );
-		add_action( 'admin_enqueue_scripts', array( 'NLF_Faq_Admin', 'enqueue_assets' ) );
-		add_action( 'admin_post_nlf_faq_save_questions', array( 'NLF_Faq_Admin', 'handle_save_questions' ) );
-		add_action( 'admin_post_nlf_faq_export', array( 'NLF_Faq_Admin', 'handle_export' ) );
-		add_action( 'admin_post_nlf_faq_import', array( 'NLF_Faq_Admin', 'handle_import' ) );
-		add_action( 'update_option_' . NLF_Faq_Options::OPTION_KEY, array( 'NLF_Faq_Style_Generator', 'generate_and_save' ), 10, 2 );
+		add_action( 'plugins_loaded', array( '\Krslys\NextLevelFaq\Repository', 'maybe_create_table' ) );
+		add_action( 'init', array( '\Krslys\NextLevelFaq\Group_CPT', 'register' ) );
+		add_action( 'init', array( '\Krslys\NextLevelFaq\Frontend', 'register_shortcodes' ) );
+		add_action( 'wp_enqueue_scripts', array( '\Krslys\NextLevelFaq\Frontend', 'enqueue_styles' ) );
+		add_action( 'admin_menu', array( '\Krslys\NextLevelFaq\Admin', 'register_menu' ) );
+		add_action( 'admin_init', array( '\Krslys\NextLevelFaq\Admin', 'register_settings' ) );
+		add_action( 'admin_enqueue_scripts', array( '\Krslys\NextLevelFaq\Admin', 'enqueue_assets' ) );
+		add_action( 'admin_post_nlf_faq_save_questions', array( '\Krslys\NextLevelFaq\Admin', 'handle_save_questions' ) );
+		add_action( 'admin_post_nlf_faq_export', array( '\Krslys\NextLevelFaq\Admin', 'handle_export' ) );
+		add_action( 'admin_post_nlf_faq_import', array( '\Krslys\NextLevelFaq\Admin', 'handle_import' ) );
+		add_action( 'update_option_' . Options::OPTION_KEY, array( '\Krslys\NextLevelFaq\Style_Generator', 'generate_and_save' ), 10, 2 );
 
 		// Gutenberg block registration using block.json and dynamic render.
 		if ( function_exists( 'register_block_type' ) ) {
@@ -114,8 +119,8 @@ final class NLF_Faq_Plugin {
 
 					// Register style handle BEFORE block registration.
 					// The handle must match the "style" in block.json.
-					$css_path = NLF_Faq_Style_Generator::get_css_file_path();
-					$css_url  = NLF_Faq_Style_Generator::get_css_file_url();
+					$css_path = Style_Generator::get_css_file_path();
+					$css_url  = Style_Generator::get_css_file_url();
 
 					if ( $css_url ) {
 						$version = file_exists( $css_path ) ? filemtime( $css_path ) : NLF_FAQ_VERSION;
@@ -176,13 +181,15 @@ final class NLF_Faq_Plugin {
 	}
 }
 
-/**
- * Initialize plugin.
- */
-function nlf_faq_init() {
-	return NLF_Faq_Plugin::instance();
-}
+namespace {
+	/**
+	 * Initialize plugin.
+	 */
+	function nlf_faq_init() {
+		return \Krslys\NextLevelFaq\Plugin::instance();
+	}
 
-nlf_faq_init();
+	nlf_faq_init();
+}
 
 

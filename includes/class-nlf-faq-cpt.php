@@ -1,7 +1,17 @@
 <?php
+/**
+ * FAQ custom post type and metabox integration.
+ *
+ * @package Krslys\NextLevelFaq
+ */
+
+namespace Krslys\NextLevelFaq;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+use WP_Post;
 
 /**
  * FAQ custom post type and metabox integration.
@@ -12,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - Input sanitization via sanitize_text_field() and wp_kses_post().
  * - Output escaping via esc_attr(), esc_html(), esc_textarea().
  */
-class NLF_Faq_CPT {
+class CPT {
 
 	/**
 	 * Post type slug.
@@ -78,7 +88,7 @@ class NLF_Faq_CPT {
 public static function render_metabox( $post ) {
 	wp_nonce_field( 'nlf_faq_save', 'nlf_faq_nonce' );
 
-		$faq_item = NLF_Faq_Repository::get_faq_by_post_id( $post->ID );
+		$faq_item = Repository::get_faq_by_post_id( $post->ID );
 
 		$question = $faq_item ? $faq_item->question : '';
 		$answer   = $faq_item ? $faq_item->answer : '';
@@ -164,7 +174,7 @@ public static function save_metabox( $post_id, $post ) {
 
 		$status_flag = 'publish' === $post->post_status ? 1 : 0;
 
-		NLF_Faq_Repository::save_faq_item( $post_id, $question, $answer, $status_flag );
+		Repository::save_faq_item( $post_id, $question, $answer, $status_flag );
 	}
 
 	/**
@@ -181,7 +191,7 @@ public static function handle_delete( $post_id ) {
 			return;
 		}
 
-		NLF_Faq_Repository::delete_by_post_id( $post_id );
+		Repository::delete_by_post_id( $post_id );
 	}
 
 	/**
@@ -209,7 +219,7 @@ public static function handle_delete( $post_id ) {
 			return;
 		}
 
-		$item = NLF_Faq_Repository::get_faq_by_post_id( $post_id );
+		$item = Repository::get_faq_by_post_id( $post_id );
 
 		if ( ! $item || empty( $item->answer ) ) {
 			echo '&mdash;';
