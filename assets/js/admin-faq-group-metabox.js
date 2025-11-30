@@ -1,6 +1,98 @@
 (function ($) {
 	'use strict';
 
+	// Tab Switching
+	function initTabs() {
+		$('.nlf-faq-tab-button').on('click', function () {
+			var targetTab = $(this).data('tab');
+			
+			// Update buttons
+			$('.nlf-faq-tab-button').removeClass('active');
+			$(this).addClass('active');
+			
+			// Update panels
+			$('.nlf-faq-tab-panel').removeClass('active');
+			$('.nlf-faq-tab-panel[data-tab="' + targetTab + '"]').addClass('active');
+			
+			// Load live preview when switching to live view tab
+			if (targetTab === 'live-view') {
+				loadLivePreview();
+			}
+		});
+	}
+
+	// Theme Selection
+	function initThemeSelection() {
+		$('.nlf-theme-card').on('click', function () {
+			$('.nlf-theme-card').removeClass('active');
+			$(this).addClass('active');
+			$(this).find('input[type="radio"]').prop('checked', true);
+		});
+	}
+
+	// Custom Style Toggle
+	function initCustomStyleToggle() {
+		$('#nlf-use-custom-style-toggle').on('change', function () {
+			var $fields = $('.nlf-custom-style-fields');
+			if ($(this).is(':checked')) {
+				$fields.show();
+			} else {
+				$fields.hide();
+			}
+		});
+	}
+
+	// Color Pickers
+	function initColorPickers() {
+		if (typeof $.fn.wpColorPicker !== 'undefined') {
+			$('.nlf-color-picker').wpColorPicker();
+		}
+	}
+
+	// Live Preview Loader
+	function loadLivePreview() {
+		var $container = $('.nlf-live-view-container');
+		var $loading = $container.find('.nlf-live-view-loading');
+		var $content = $container.find('.nlf-live-view-content');
+		var groupId = $container.data('group-id');
+		
+		if (!groupId || groupId === '0' || groupId === 0) {
+			$loading.html('<p>Save the group first to see the preview.</p>');
+			return;
+		}
+		
+		$loading.show();
+		$content.removeClass('loaded').hide();
+		
+		// Make AJAX request to fetch preview
+		$.ajax({
+			url: nlfGroupData.ajaxurl,
+			type: 'POST',
+			data: {
+				action: 'nlf_get_group_preview',
+				group_id: groupId,
+				nonce: nlfGroupData.nonce
+			},
+			success: function (response) {
+				if (response.success && response.data.html) {
+					$content.html(response.data.html);
+					$loading.hide();
+					$content.addClass('loaded').show();
+					
+					// Initialize frontend FAQ interactions
+					if (typeof window.nlfInitFaq === 'function') {
+						window.nlfInitFaq($content);
+					}
+				} else {
+					$loading.html('<p>' + (response.data.message || 'Failed to load preview.') + '</p>');
+				}
+			},
+			error: function () {
+				$loading.html('<p>Error loading preview. Please save the group and try again.</p>');
+			}
+		});
+	}
+
 	function renumberGroupCheckboxes() {
 		$('#nlf-faq-group-questions-body .nlf-faq-question-row').each(function (index) {
 			var $row = $(this);
@@ -47,6 +139,14 @@
 	}
 
 	$(function () {
+		// Initialize tabs
+		if ($('.nlf-faq-tabs-nav').length) {
+			initTabs();
+			initThemeSelection();
+			initCustomStyleToggle();
+			initColorPickers();
+		}
+
 		var $body = $('#nlf-faq-group-questions-body');
 		if (!$body.length) {
 			return;

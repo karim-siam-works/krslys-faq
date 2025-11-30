@@ -36,13 +36,14 @@ class Frontend_Renderer {
 	 * SECURITY: Uses esc_url_raw() for CSS URL.
 	 */
 	public static function enqueue_styles() {
+		// Enqueue global CSS
 		$css_path = Style_Generator::get_css_file_path();
 		$css_url  = Style_Generator::get_css_file_url();
 
-	$uploads = wp_upload_dir();
-	$baseurl = isset( $uploads['baseurl'] ) ? trailingslashit( $uploads['baseurl'] ) : '';
+		$uploads = wp_upload_dir();
+		$baseurl = isset( $uploads['baseurl'] ) ? trailingslashit( $uploads['baseurl'] ) : '';
 
-	if ( $css_url && $css_path && file_exists( $css_path ) && $baseurl && 0 === strpos( $css_url, $baseurl ) ) {
+		if ( $css_url && $css_path && file_exists( $css_path ) && $baseurl && 0 === strpos( $css_url, $baseurl ) ) {
 			wp_enqueue_style(
 				'nlf-faq-generated',
 				esc_url_raw( $css_url ),
@@ -51,6 +52,7 @@ class Frontend_Renderer {
 			);
 		}
 
+		// Enqueue group-specific CSS if needed (will be done per group in shortcode)
 		wp_enqueue_script(
 			'nlf-faq-frontend',
 			NLF_FAQ_PLUGIN_URL . 'assets/js/frontend-faq.js',
@@ -58,6 +60,38 @@ class Frontend_Renderer {
 			NLF_FAQ_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Enqueue group-specific CSS if custom styles are enabled.
+	 *
+	 * @param int $group_id Group ID.
+	 */
+	private static function maybe_enqueue_group_css( $group_id ) {
+		if ( ! $group_id ) {
+			return;
+		}
+
+		$use_custom_style = get_post_meta( $group_id, '_nlf_faq_group_use_custom_style', true );
+
+		if ( empty( $use_custom_style ) ) {
+			return;
+		}
+
+		$css_path = Style_Generator::get_group_css_file_path( $group_id );
+		$css_url  = Style_Generator::get_group_css_file_url( $group_id );
+
+		$uploads = wp_upload_dir();
+		$baseurl = isset( $uploads['baseurl'] ) ? trailingslashit( $uploads['baseurl'] ) : '';
+
+		if ( $css_url && $css_path && file_exists( $css_path ) && $baseurl && 0 === strpos( $css_url, $baseurl ) ) {
+			wp_enqueue_style(
+				'nlf-faq-group-' . $group_id,
+				esc_url_raw( $css_url ),
+				array( 'nlf-faq-generated' ),
+				filemtime( $css_path )
+			);
+		}
 	}
 
 	/**
@@ -95,23 +129,65 @@ public static function render_shortcode( $atts, $content = '' ) {
 			}
 		}
 
+		// Enqueue group-specific CSS if custom styles enabled
+		if ( $group_id ) {
+			self::maybe_enqueue_group_css( $group_id );
+		}
+
+		// Get group-specific settings
+		$settings = array();
+		if ( $group_id ) {
+			$settings = get_post_meta( $group_id, '_nlf_faq_group_settings', true );
+		}
+		if ( ! is_array( $settings ) ) {
+			$settings = array(
+				'accordion_mode'  => false,
+				'initial_state'   => 'all_closed',
+				'animation_speed' => 'normal',
+				'show_search'     => false,
+				'show_counter'    => false,
+				'smooth_scroll'   => true,
+			);
+		}
+
 		$items = Repository::get_all_published_faqs( $group_id );
 
 		if ( ! is_array( $items ) ) {
 			$items = array();
 		}
 
+		$faq_classes = array( 'nlf-faq' );
+		if ( ! empty( $settings['accordion_mode'] ) ) {
+			$faq_classes[] = 'nlf-faq--accordion';
+		}
+
 		ob_start();
 		?>
-		<div class="nlf-faq">
+		<div class="<?php echo esc_attr( implode( ' ', $faq_classes ) ); ?>" 
+			data-animation-speed="<?php echo esc_attr( $settings['animation_speed'] ?? 'normal' ); ?>"
+			data-accordion="<?php echo ! empty( $settings['accordion_mode'] ) ? '1' : '0'; ?>"
+			data-smooth-scroll="<?php echo ! empty( $settings['smooth_scroll'] ) ? '1' : '0'; ?>">
 			<?php if ( '' !== $atts['title'] ) : ?>
 				<h2 class="nlf-faq__title"><?php echo esc_html( $atts['title'] ); ?></h2>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $settings['show_search'] ) ) : ?>
+				<div class="nlf-faq-search">
+					<input type="text" class="nlf-faq-search-input" placeholder="<?php esc_attr_e( 'Search FAQs...', 'next-level-faq' ); ?>" />
+				</div>
 			<?php endif; ?>
 
 			<?php if ( ! empty( $items ) ) : ?>
 			<?php foreach ( $items as $index => $item ) : ?>
 				<?php
-				$is_open   = isset( $item->initial_state ) ? ( 1 === (int) $item->initial_state ) : ( 0 === (int) $index );
+				// Determine initial open state based on settings
+					$is_open = false;
+					if ( 'first_open' === $settings['initial_state'] && 0 === $index ) {
+						$is_open = true;
+					} elseif ( 'custom' === $settings['initial_state'] && isset( $item->initial_state ) && 1 === (int) $item->initial_state ) {
+						$is_open = true;
+					}
+
 					$is_active = isset( $item->highlight ) ? ( 1 === (int) $item->highlight ) : false;
 					$item_class = array();
 
@@ -122,8 +198,11 @@ public static function render_shortcode( $atts, $content = '' ) {
 						$item_class[] = 'nlf-faq__item--highlight';
 					}
 					?>
-					<div class="nlf-faq__item <?php echo esc_attr( implode( ' ', $item_class ) ); ?>">
+					<div class="nlf-faq__item <?php echo esc_attr( implode( ' ', $item_class ) ); ?>" data-faq-id="<?php echo esc_attr( $item->id ); ?>">
 						<div class="nlf-faq__question">
+							<?php if ( ! empty( $settings['show_counter'] ) ) : ?>
+								<span class="nlf-faq__counter"><?php echo esc_html( $index + 1 ); ?>.</span>
+							<?php endif; ?>
 							<span><?php echo esc_html( (string) $item->question ); ?></span>
 							<span class="nlf-faq__icon" aria-hidden="true"></span>
 						</div>

@@ -137,6 +137,43 @@ class Style_Generator {
 	width: 100%;
 }
 
+/* ============================================
+   Search Box
+   ============================================ */
+
+.nlf-faq-search {
+	margin-bottom: 1.5rem;
+}
+
+.nlf-faq-search-input {
+	width: 100%;
+	padding: 0.75rem 1rem;
+	font-size: 1rem;
+	border: 1px solid var(--nlf-faq-border-color);
+	border-radius: 0.5rem;
+	background: var(--nlf-faq-container-bg);
+	color: var(--nlf-faq-question-color);
+	transition: border-color 200ms ease;
+	box-sizing: border-box;
+}
+
+.nlf-faq-search-input:focus {
+	outline: none;
+	border-color: var(--nlf-faq-accent-color);
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ============================================
+   Counter
+   ============================================ */
+
+.nlf-faq__counter {
+	display: inline-block;
+	margin-right: 0.5rem;
+	color: var(--nlf-faq-accent-color);
+	font-weight: 600;
+}
+
 .nlf-faq__item {
 	border-bottom: 1px solid var(--nlf-faq-border-color);
 	padding: 0.75rem 0;
@@ -400,5 +437,153 @@ class Style_Generator {
 		);
 
 		return false !== $result;
+	}
+
+	/**
+	 * Get path to group-specific CSS file.
+	 *
+	 * @param int $group_id Group ID.
+	 * @return string
+	 */
+	public static function get_group_css_file_path( $group_id ) {
+		$upload_dir = wp_upload_dir();
+		$dir        = trailingslashit( $upload_dir['basedir'] ) . 'nlf-faq/groups';
+
+		wp_mkdir_p( $dir );
+
+		return trailingslashit( $dir ) . 'group-' . absint( $group_id ) . '.css';
+	}
+
+	/**
+	 * Get URL to group-specific CSS file.
+	 *
+	 * @param int $group_id Group ID.
+	 * @return string|false
+	 */
+	public static function get_group_css_file_url( $group_id ) {
+		$upload_dir = wp_upload_dir();
+		$url        = trailingslashit( $upload_dir['baseurl'] ) . 'nlf-faq/groups/group-' . absint( $group_id ) . '.css';
+
+		return $url;
+	}
+
+	/**
+	 * Generate and save CSS for a specific group.
+	 *
+	 * SECURITY:
+	 * - Uses WP_Filesystem for secure file operations.
+	 * - Validates file paths and permissions.
+	 *
+	 * @param int   $group_id Group ID.
+	 * @param array $options  Style options for the group.
+	 * @return bool True on success, false on failure.
+	 */
+	public static function generate_and_save_for_group( $group_id, $options ) {
+		$group_id = absint( $group_id );
+
+		if ( ! $group_id ) {
+			return false;
+		}
+
+		$css  = self::build_css( $options );
+		$path = self::get_group_css_file_path( $group_id );
+
+		if ( ! $path ) {
+			return false;
+		}
+
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		// Initialize filesystem with direct method (safe for uploads directory).
+		$credentials = request_filesystem_credentials( '', '', false, false, null );
+
+		if ( false === $credentials ) {
+			// Fallback to direct method for uploads directory.
+			if ( ! WP_Filesystem() ) {
+				return false;
+			}
+		} elseif ( ! WP_Filesystem( $credentials ) ) {
+			return false;
+		}
+
+		global $wp_filesystem;
+
+		if ( ! $wp_filesystem ) {
+			return false;
+		}
+
+		$dir = dirname( $path );
+
+		if ( ! $wp_filesystem->is_dir( $dir ) ) {
+			if ( ! wp_mkdir_p( $dir ) ) {
+				return false;
+			}
+		}
+
+		$wp_path = $path;
+
+		if ( defined( 'FTP_BASE' ) ) {
+			$wp_path = str_replace( ABSPATH, trailingslashit( FTP_BASE ), $path );
+		}
+
+		$result = $wp_filesystem->put_contents(
+			$wp_path,
+			$css,
+			FS_CHMOD_FILE
+		);
+
+		return false !== $result;
+	}
+
+	/**
+	 * Delete group-specific CSS file.
+	 *
+	 * SECURITY: Uses WP_Filesystem for secure file operations.
+	 *
+	 * @param int $group_id Group ID.
+	 * @return bool True on success, false on failure.
+	 */
+	public static function delete_group_css( $group_id ) {
+		$group_id = absint( $group_id );
+
+		if ( ! $group_id ) {
+			return false;
+		}
+
+		$path = self::get_group_css_file_path( $group_id );
+
+		if ( ! file_exists( $path ) ) {
+			return true; // Already deleted or never existed.
+		}
+
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		$credentials = request_filesystem_credentials( '', '', false, false, null );
+
+		if ( false === $credentials ) {
+			if ( ! WP_Filesystem() ) {
+				return false;
+			}
+		} elseif ( ! WP_Filesystem( $credentials ) ) {
+			return false;
+		}
+
+		global $wp_filesystem;
+
+		if ( ! $wp_filesystem ) {
+			return false;
+		}
+
+		$wp_path = $path;
+
+		if ( defined( 'FTP_BASE' ) ) {
+			$wp_path = str_replace( ABSPATH, trailingslashit( FTP_BASE ), $path );
+		}
+
+		return $wp_filesystem->delete( $wp_path );
 	}
 }
