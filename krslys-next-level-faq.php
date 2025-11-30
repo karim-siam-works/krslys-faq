@@ -23,27 +23,25 @@ define( 'NLF_FAQ_DB_VERSION', '1.3.0' );
 require_once NLF_FAQ_PLUGIN_DIR . 'includes/Autoloader.php';
 
 // Initialize autoloader.
-$autoloader = new Krslys\NextLevelFaq\Autoloader( NLF_FAQ_PLUGIN_DIR . 'includes' );
+$autoloader = new \Krslys\NextLevelFaq\Autoloader( NLF_FAQ_PLUGIN_DIR . 'includes' );
 $autoloader->register();
-
-namespace Krslys\NextLevelFaq;
 
 /**
  * Main plugin class.
  */
-final class Plugin {
+final class Krslys_NextLevelFaq_Plugin {
 
 	/**
 	 * Singleton instance.
 	 *
-	 * @var Plugin|null
+	 * @var Krslys_NextLevelFaq_Plugin|null
 	 */
 	private static $instance = null;
 
 	/**
 	 * Get singleton instance.
 	 *
-	 * @return Plugin
+	 * @return Krslys_NextLevelFaq_Plugin
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -88,7 +86,7 @@ final class Plugin {
 		add_action( 'admin_post_nlf_faq_save_questions', array( '\Krslys\NextLevelFaq\Admin_Settings', 'handle_save_questions' ) );
 		add_action( 'admin_post_nlf_faq_export', array( '\Krslys\NextLevelFaq\Admin_Settings', 'handle_export' ) );
 		add_action( 'admin_post_nlf_faq_import', array( '\Krslys\NextLevelFaq\Admin_Settings', 'handle_import' ) );
-		add_action( 'update_option_' . Options::OPTION_KEY, array( '\Krslys\NextLevelFaq\Style_Generator', 'generate_and_save' ), 10, 2 );
+		add_action( 'update_option_' . \Krslys\NextLevelFaq\Options::OPTION_KEY, array( '\Krslys\NextLevelFaq\Style_Generator', 'generate_and_save' ), 10, 2 );
 
 		// Gutenberg block registration using block.json and dynamic render.
 		if ( function_exists( 'register_block_type' ) ) {
@@ -119,8 +117,8 @@ final class Plugin {
 
 					// Register style handle BEFORE block registration.
 					// The handle must match the "style" in block.json.
-					$css_path = Style_Generator::get_css_file_path();
-					$css_url  = Style_Generator::get_css_file_url();
+					$css_path = \Krslys\NextLevelFaq\Style_Generator::get_css_file_path();
+					$css_url  = \Krslys\NextLevelFaq\Style_Generator::get_css_file_url();
 
 					if ( $css_url ) {
 						$version = file_exists( $css_path ) ? filemtime( $css_path ) : NLF_FAQ_VERSION;
@@ -181,15 +179,13 @@ final class Plugin {
 	}
 }
 
-namespace {
-	/**
-	 * Initialize plugin.
-	 */
-	function nlf_faq_init() {
-		return \Krslys\NextLevelFaq\Plugin::instance();
-	}
-
-	nlf_faq_init();
+/**
+ * Initialize plugin.
+ */
+function nlf_faq_init() {
+	return Krslys_NextLevelFaq_Plugin::instance();
 }
+
+nlf_faq_init();
 
 
