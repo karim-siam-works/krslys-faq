@@ -997,8 +997,9 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 
 		if ( ! empty( $data['items'] ) && is_array( $data['items'] ) ) {
 			foreach ( $data['items'] as $index => $item ) {
-				$question = isset( $item['question'] ) ? (string) $item['question'] : '';
-				$answer   = isset( $item['answer'] ) ? (string) $item['answer'] : '';
+				// Sanitize inputs to prevent XSS - match normal save_metabox() behavior.
+				$question = isset( $item['question'] ) ? sanitize_text_field( $item['question'] ) : '';
+				$answer   = isset( $item['answer'] ) ? wp_kses_post( $item['answer'] ) : '';
 
 				if ( '' === trim( wp_strip_all_tags( $question ) ) && '' === trim( wp_strip_all_tags( $answer ) ) ) {
 					continue;

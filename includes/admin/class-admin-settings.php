@@ -761,8 +761,9 @@ public static function handle_import() {
 				continue;
 			}
 
-			$question = isset( $item['question'] ) ? (string) $item['question'] : '';
-				$answer   = isset( $item['answer'] ) ? (string) $item['answer'] : '';
+			// Sanitize inputs to prevent XSS - match normal save_metabox() behavior.
+			$question = isset( $item['question'] ) ? sanitize_text_field( $item['question'] ) : '';
+				$answer   = isset( $item['answer'] ) ? wp_kses_post( $item['answer'] ) : '';
 
 				$trimmed_question = trim( wp_strip_all_tags( $question ) );
 				$trimmed_answer   = trim( wp_strip_all_tags( $answer ) );
