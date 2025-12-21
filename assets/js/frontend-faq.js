@@ -160,20 +160,15 @@
 		params.append('state', payload.action);
 		params.append('nonce', analyticsConfig.nonce);
 
-		var body = params.toString();
-
 		if (navigator.sendBeacon) {
-			navigator.sendBeacon(analyticsConfig.ajaxurl, body);
+			navigator.sendBeacon(analyticsConfig.ajaxurl, params);
 			return;
 		}
 
 		fetch(analyticsConfig.ajaxurl, {
 			method: 'POST',
 			credentials: 'same-origin',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-			},
-			body: body,
+			body: params,
 		});
 	}
 })();
