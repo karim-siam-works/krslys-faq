@@ -643,23 +643,58 @@
 		const editors = [];
 		$$('textarea.nlf-faq-group-answer-editor', row).forEach((textarea) => {
 			const id = textarea.id;
-			if (!id || !window.tinymce) {
+			if (!id) {
 				return;
 			}
-			const editor = window.tinymce.get(id);
-			if (editor) {
-				if (!editor.isHidden()) {
-					editor.save();
+
+			let content = textarea.value;
+
+			// Get content from TinyMCE editor if it exists
+			if (window.tinymce) {
+				const editor = window.tinymce.get(id);
+				if (editor) {
+					// Always save content to textarea, even if editor is hidden
+					try {
+						editor.save();
+						// Get content directly from editor as backup
+						content = editor.getContent() || textarea.value;
+					} catch (e) {
+						// If save fails, try to get content directly
+						try {
+							content = editor.getContent() || textarea.value;
+						} catch (e2) {
+							// Fallback to textarea value
+							content = textarea.value;
+						}
+					}
+					// Remove the editor instance
+					editor.remove();
 				}
-				editor.remove();
-				editors.push(id);
 			}
+
+			// Also remove wp.editor instance if it exists
+			if (window.wp && window.wp.editor && typeof window.wp.editor.remove === 'function') {
+				try {
+					window.wp.editor.remove(id);
+				} catch (e) {
+					// Editor might not exist, ignore error
+				}
+			}
+
+			// Ensure content is saved to textarea before storing
+			textarea.value = content;
+
+			// Store editor info with content
+			editors.push({
+				id: id,
+				content: content
+			});
 		});
 		return editors;
 	}
 
-	function restoreEditors(row, editorIds) {
-		if (!editorIds || !editorIds.length) {
+	function restoreEditors(row, editorData) {
+		if (!editorData || !editorData.length) {
 			return;
 		}
 
@@ -672,18 +707,63 @@
 			return;
 		}
 
-		editorIds.forEach((id) => {
-			const textarea = row.querySelector(`#${id}`);
-			if (!textarea) {
-				return;
-			}
+		// Use setTimeout to ensure DOM is stable after drag operation
+		setTimeout(() => {
+			editorData.forEach((editorInfo) => {
+				const id = editorInfo.id;
+				const content = editorInfo.content;
+				const textarea = row.querySelector(`#${id}`);
+				
+				if (!textarea) {
+					return;
+				}
 
-			editorAPI.initialize(id, {
-				tinymce: { wpautop: true },
-				quicktags: true,
-				mediaButtons: false,
+				// Ensure content is in textarea before reinitializing
+				if (content && textarea.value !== content) {
+					textarea.value = content;
+				}
+
+				// Remove any existing editor instance first
+				if (window.tinymce) {
+					const existingEditor = window.tinymce.get(id);
+					if (existingEditor) {
+						try {
+							existingEditor.remove();
+						} catch (e) {
+							// Editor might be in invalid state, continue anyway
+						}
+					}
+				}
+
+				// Reinitialize the editor
+				editorAPI.initialize(id, {
+					tinymce: { 
+						wpautop: true
+					},
+					quicktags: true,
+					mediaButtons: false,
+				});
+
+				// Set content after editor is fully initialized
+				// Use a small delay to ensure editor is ready
+				setTimeout(() => {
+					if (window.tinymce && window.tinymce.get(id)) {
+						const editor = window.tinymce.get(id);
+						if (editor && content) {
+							try {
+								editor.setContent(content);
+							} catch (e) {
+								// If setContent fails, try setting textarea value directly
+								const textarea = row.querySelector(`#${id}`);
+								if (textarea) {
+									textarea.value = content;
+								}
+							}
+						}
+					}
+				}, 200);
 			});
-		});
+		}, 50);
 	}
 
 	doc.addEventListener('DOMContentLoaded', init);

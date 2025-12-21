@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use WP_Post;
+use Krslys\NextLevelFaq\Group_CPT;
 
 /**
  * Front-end rendering and assets.
@@ -209,14 +210,7 @@ public static function render_shortcode( $atts, $content = '' ) {
 			$settings = get_post_meta( $group_id, '_nlf_faq_group_settings', true );
 		}
 		if ( ! is_array( $settings ) ) {
-			$settings = array(
-				'accordion_mode'  => false,
-				'initial_state'   => 'all_closed',
-				'animation_speed' => 'normal',
-				'show_search'     => false,
-				'show_counter'    => false,
-				'smooth_scroll'   => true,
-			);
+			$settings = Group_CPT::get_default_settings();
 		}
 
 		$items = Repository::get_all_published_faqs( $group_id );

@@ -966,22 +966,21 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 			wp_die( esc_html__( 'You do not have permission to modify this group.', 'next-level-faq' ) );
 		}
 
-		if ( empty( $_FILES['nlf_group_import_file']['tmp_name'] ) || UPLOAD_ERR_OK !== (int) $_FILES['nlf_group_import_file']['error'] ) {
+		if ( empty( $_FILES['nlf_group_import_file'] ) ) {
 			self::redirect_with_notice( $group_id, 'import_error', __( 'Upload failed. Please select a valid JSON file.', 'next-level-faq' ) );
 		}
 
-		$filename = isset( $_FILES['nlf_group_import_file']['name'] ) ? sanitize_file_name( wp_unslash( $_FILES['nlf_group_import_file']['name'] ) ) : '';
-		if ( 'json' !== strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) ) ) {
-			self::redirect_with_notice( $group_id, 'import_error', __( 'Only JSON files exported by this plugin are allowed.', 'next-level-faq' ) );
+		$file = Admin_Settings::validate_json_file_upload( $_FILES['nlf_group_import_file'] );
+
+		if ( false === $file ) {
+			$error_message = __( 'Invalid file upload. Please ensure the file is a valid JSON export under 2MB.', 'next-level-faq' );
+			if ( isset( $_FILES['nlf_group_import_file']['error'] ) && (int) $_FILES['nlf_group_import_file']['error'] !== UPLOAD_ERR_OK ) {
+				$error_message = Admin_Settings::describe_upload_error( (int) $_FILES['nlf_group_import_file']['error'] );
+			}
+			self::redirect_with_notice( $group_id, 'import_error', $error_message );
 		}
 
-		$file_contents = file_get_contents( $_FILES['nlf_group_import_file']['tmp_name'] ); // phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.file_get_contentsUnknown
-
-		if ( false === $file_contents ) {
-			self::redirect_with_notice( $group_id, 'import_error', __( 'Unable to read the uploaded file.', 'next-level-faq' ) );
-		}
-
-		$data = json_decode( $file_contents, true );
+		$data = Admin_Settings::decode_import_file( $file['tmp_name'] );
 
 		if ( null === $data || ! is_array( $data ) ) {
 			self::redirect_with_notice( $group_id, 'import_error', __( 'Invalid JSON file.', 'next-level-faq' ) );
@@ -1390,7 +1389,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	 *
 	 * @return array
 	 */
-	private static function get_default_settings() {
+	public static function get_default_settings() {
 		return array(
 			'accordion_mode'  => false,
 			'initial_state'   => 'all_closed',

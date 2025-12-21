@@ -718,32 +718,23 @@ public static function handle_import() {
 
 	$page_url = self::get_tools_page_url();
 
-	if ( empty( $_FILES['nlf_faq_import_file'] ) || empty( $_FILES['nlf_faq_import_file']['tmp_name'] ) ) {
-			self::store_tools_notice( 'error', __( 'Upload a Context7 export file before running import.', 'next-level-faq' ) );
-			wp_safe_redirect( $page_url );
+	if ( empty( $_FILES['nlf_faq_import_file'] ) ) {
+		self::store_tools_notice( 'error', __( 'Upload a Context7 export file before running import.', 'next-level-faq' ) );
+		wp_safe_redirect( $page_url );
 		exit;
 	}
 
-	$file     = $_FILES['nlf_faq_import_file'];
-	$filename = isset( $file['name'] ) ? sanitize_file_name( wp_unslash( $file['name'] ) ) : '';
+	$file = self::validate_json_file_upload( $_FILES['nlf_faq_import_file'] );
 
-	if ( isset( $file['error'] ) && (int) $file['error'] !== UPLOAD_ERR_OK ) {
-			self::store_tools_notice( 'error', self::describe_upload_error( (int) $file['error'] ) );
-			wp_safe_redirect( $page_url );
-		exit;
-	}
-
-	$size_limit = defined( 'MB_IN_BYTES' ) ? 2 * MB_IN_BYTES : 2 * 1024 * 1024;
-
-		if ( isset( $file['size'] ) && (int) $file['size'] > $size_limit ) {
+	if ( false === $file ) {
+		if ( isset( $_FILES['nlf_faq_import_file']['error'] ) && (int) $_FILES['nlf_faq_import_file']['error'] !== UPLOAD_ERR_OK ) {
+			self::store_tools_notice( 'error', self::describe_upload_error( (int) $_FILES['nlf_faq_import_file']['error'] ) );
+		} elseif ( isset( $_FILES['nlf_faq_import_file']['size'] ) && (int) $_FILES['nlf_faq_import_file']['size'] > ( defined( 'MB_IN_BYTES' ) ? 2 * MB_IN_BYTES : 2 * 1024 * 1024 ) ) {
 			self::store_tools_notice( 'error', __( 'Import file is too large. Please keep exports under 2MB.', 'next-level-faq' ) );
-			wp_safe_redirect( $page_url );
-		exit;
-	}
-
-	if ( ! self::is_valid_json_upload( $file ) ) {
+		} else {
 			self::store_tools_notice( 'error', __( 'Only JSON files exported by this plugin are allowed.', 'next-level-faq' ) );
-			wp_safe_redirect( $page_url );
+		}
+		wp_safe_redirect( $page_url );
 		exit;
 	}
 
@@ -924,13 +915,54 @@ private static function store_tools_notice( $type, $message ) {
 	}
 
 	/**
+	 * Validate JSON file upload with comprehensive checks.
+	 *
+	 * SECURITY:
+	 * - Validates file upload errors
+	 * - Validates file size (2MB limit)
+	 * - Validates file extension (.json)
+	 * - Uses is_valid_json_upload() for MIME and content validation
+	 *
+	 * @param array  $file      Upload file array from $_FILES.
+	 * @param string $error_key Optional error key for storing notices.
+	 * @return array|false Returns file array on success, false on failure.
+	 */
+	public static function validate_json_file_upload( $file, $error_key = 'import_error' ) {
+		if ( empty( $file ) || empty( $file['tmp_name'] ) ) {
+			return false;
+		}
+
+		$filename = isset( $file['name'] ) ? sanitize_file_name( wp_unslash( $file['name'] ) ) : '';
+
+		if ( isset( $file['error'] ) && (int) $file['error'] !== UPLOAD_ERR_OK ) {
+			return false;
+		}
+
+		$size_limit = defined( 'MB_IN_BYTES' ) ? 2 * MB_IN_BYTES : 2 * 1024 * 1024;
+		if ( isset( $file['size'] ) && (int) $file['size'] > $size_limit ) {
+			return false;
+		}
+
+		$ext = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+		if ( 'json' !== $ext ) {
+			return false;
+		}
+
+		if ( ! self::is_valid_json_upload( $file ) ) {
+			return false;
+		}
+
+		return $file;
+	}
+
+	/**
 	 * Human readable upload error.
 	 *
 	 * @param int $code PHP upload error code.
 	 *
 	 * @return string
 	 */
-	private static function describe_upload_error( $code ) {
+	public static function describe_upload_error( $code ) {
 		switch ( (int) $code ) {
 			case UPLOAD_ERR_INI_SIZE:
 			case UPLOAD_ERR_FORM_SIZE:
@@ -959,7 +991,7 @@ private static function store_tools_notice( $type, $message ) {
 	 *
 	 * @return array|null
 	 */
-	private static function decode_import_file( $file_path ) {
+	public static function decode_import_file( $file_path ) {
 		if ( ! is_readable( $file_path ) ) {
 			return null;
 		}
@@ -1101,7 +1133,7 @@ private static function store_tools_notice( $type, $message ) {
 	 * @param array $file Upload file array from $_FILES.
 	 * @return bool
 	 */
-	private static function is_valid_json_upload( $file ) {
+	public static function is_valid_json_upload( $file ) {
 		if ( empty( $file['tmp_name'] ) || ! is_readable( $file['tmp_name'] ) ) {
 		return false;
 	}
