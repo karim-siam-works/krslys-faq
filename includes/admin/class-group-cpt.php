@@ -1580,7 +1580,10 @@ public static function handle_delete( $post_id ) {
 		// Build FAQ HTML
 		ob_start();
 		?>
-		<div class="nlf-faq nlf-faq--preview" data-group-id="<?php echo esc_attr( $group_id ); ?>">
+		<div class="nlf-faq nlf-faq--preview" 
+			data-group-id="<?php echo esc_attr( $group_id ); ?>"
+			data-accordion="<?php echo ! empty( $settings['accordion_mode'] ) ? '1' : '0'; ?>"
+			data-smooth-scroll="<?php echo ! empty( $settings['smooth_scroll'] ) ? '1' : '0'; ?>">
 			<?php if ( ! empty( $settings['show_search'] ) ) : ?>
 				<div class="nlf-faq-search">
 					<input type="text" class="nlf-faq-search-input" placeholder="<?php esc_attr_e( 'Search FAQs...', 'next-level-faq' ); ?>" />
