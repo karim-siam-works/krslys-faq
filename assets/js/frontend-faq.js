@@ -55,7 +55,8 @@
 
 			for (var i = 0; i < items.length; i++) {
 				var item = items[i];
-				var question = item.querySelector('.nlf-faq__question span');
+				// Select the question text span, excluding counter and icon spans
+				var question = item.querySelector('.nlf-faq__question > span:not(.nlf-faq__counter):not(.nlf-faq__icon)');
 				var answer = item.querySelector('.nlf-faq__answer');
 				
 				var questionText = question ? question.textContent.toLowerCase() : '';
