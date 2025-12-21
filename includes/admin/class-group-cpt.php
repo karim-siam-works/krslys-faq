@@ -319,7 +319,10 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 					'description' => __( 'Add questions and answers that your visitors commonly ask.', 'next-level-faq' ),
 					'primary'     => array(
 						'label' => __( 'Add Your First Question', 'next-level-faq' ),
-						'id'    => 'nlf-faq-group-add-row',
+						'id'    => 'nlf-faq-group-add-row-empty',
+						'data'  => array(
+							'add-row' => 'true',
+						),
 					),
 				)
 			);
@@ -394,7 +397,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 			<tfoot>
 				<tr>
 					<td colspan="3">
-						<button type="button" class="button button-secondary" id="nlf-faq-group-add-row">
+						<button type="button" class="button button-secondary nlf-faq-group-add-row-btn" id="nlf-faq-group-add-row-footer">
 							<?php esc_html_e( 'Add Question', 'next-level-faq' ); ?>
 						</button>
 					</td>

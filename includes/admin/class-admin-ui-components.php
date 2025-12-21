@@ -110,8 +110,14 @@ class Admin_UI_Components {
 
 			<div class="nlf-empty-actions">
 				<?php if ( $args['primary'] ) : ?>
+					<?php
+					$button_class = 'button button-primary button-hero';
+					if ( ! empty( $args['primary']['data']['add-row'] ) ) {
+						$button_class .= ' nlf-faq-group-add-row-btn';
+					}
+					?>
 					<button type="button"
-						class="button button-primary button-hero"
+						class="<?php echo esc_attr( $button_class ); ?>"
 						<?php echo ! empty( $args['primary']['id'] ) ? 'id="' . esc_attr( $args['primary']['id'] ) . '"' : ''; ?>
 						<?php echo ! empty( $args['primary']['data'] ) ? self::build_data_attributes( $args['primary']['data'] ) : ''; ?>>
 						<?php echo esc_html( $args['primary']['label'] ); ?>

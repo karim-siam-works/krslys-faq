@@ -510,7 +510,8 @@
 			if (event.target.closest('.nlf-onboarding-start')) {
 				event.preventDefault();
 				hideEmptyStates();
-				const addButton = $('#nlf-faq-group-add-row');
+				// Find any "Add Question" button and trigger it
+				const addButton = doc.querySelector('.nlf-faq-group-add-row-btn');
 				if (addButton) {
 					addButton.click();
 				}
@@ -531,7 +532,6 @@
 
 	function initQuestionList() {
 		const body = $('#nlf-faq-group-questions-body');
-		const addButton = $('#nlf-faq-group-add-row');
 		const template = $('#tmpl-nlf-faq-group-row');
 
 		if (!body || !template) {
@@ -548,21 +548,30 @@
 
 		$$('.nlf-faq-question-row', body).forEach(prepareRow);
 
-		if (addButton) {
-			addButton.addEventListener('click', (event) => {
-				event.preventDefault();
-				const index = $$('.nlf-faq-question-row', body).length;
-				const html = template.innerHTML.replace(/{{index}}/g, String(index)).trim();
-				const tempWrapper = doc.createElement('tbody');
-				tempWrapper.innerHTML = html;
-				const newRow = tempWrapper.firstElementChild;
-				body.appendChild(newRow);
-				prepareRow(newRow);
-				initNewEditor(newRow);
-				renumberGroupCheckboxes();
-				requestPreview('main');
-			});
-		}
+		// Use event delegation to handle clicks on any "Add Question" button
+		// This works for both the empty state button and the table footer button
+		doc.addEventListener('click', (event) => {
+			const addButton = event.target.closest('.nlf-faq-group-add-row-btn');
+			if (!addButton) {
+				return;
+			}
+
+			event.preventDefault();
+			
+			// Hide empty state when adding first question
+			hideEmptyStates();
+			
+			const index = $$('.nlf-faq-question-row', body).length;
+			const html = template.innerHTML.replace(/{{index}}/g, String(index)).trim();
+			const tempWrapper = doc.createElement('tbody');
+			tempWrapper.innerHTML = html;
+			const newRow = tempWrapper.firstElementChild;
+			body.appendChild(newRow);
+			prepareRow(newRow);
+			initNewEditor(newRow);
+			renumberGroupCheckboxes();
+			requestPreview('main');
+		});
 
 		body.addEventListener('click', (event) => {
 			const removeButton = event.target.closest('.nlf-faq-remove-row');
