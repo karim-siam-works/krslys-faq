@@ -1025,12 +1025,22 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 				update_post_meta( $group_id, '_nlf_faq_group_theme', sanitize_key( $data['theme'] ) );
 			}
 
-			if ( isset( $data['theme_custom'] ) && is_array( $data['theme_custom'] ) ) {
-				update_post_meta( $group_id, '_nlf_faq_group_theme_custom', array_map( 'sanitize_hex_color', $data['theme_custom'] ) );
-			}
+		if ( isset( $data['theme_custom'] ) && is_array( $data['theme_custom'] ) ) {
+			update_post_meta( $group_id, '_nlf_faq_group_theme_custom', array_map( 'sanitize_hex_color', $data['theme_custom'] ) );
+		}
 
 			if ( isset( $data['settings'] ) && is_array( $data['settings'] ) ) {
-				update_post_meta( $group_id, '_nlf_faq_group_settings', $data['settings'] );
+				// SECURITY: Apply same strict whitelist validation as save_metabox() to prevent arbitrary data injection.
+				$settings = $data['settings'];
+				$sanitized_settings = array(
+					'accordion_mode'  => ! empty( $settings['accordion_mode'] ),
+					'initial_state'   => in_array( $settings['initial_state'] ?? '', array( 'all_closed', 'first_open', 'custom' ), true ) ? $settings['initial_state'] : 'all_closed',
+					'animation_speed' => in_array( $settings['animation_speed'] ?? '', array( 'fast', 'normal', 'slow' ), true ) ? $settings['animation_speed'] : 'normal',
+					'show_search'     => ! empty( $settings['show_search'] ),
+					'show_counter'    => ! empty( $settings['show_counter'] ),
+					'smooth_scroll'   => ! empty( $settings['smooth_scroll'] ),
+				);
+				update_post_meta( $group_id, '_nlf_faq_group_settings', $sanitized_settings );
 			}
 
 			if ( isset( $data['use_custom_style'] ) ) {
