@@ -826,7 +826,7 @@
 	padding: var(--spacing-6);
 }
 
-.nlf-preview-content.loaded ~ .nlf-preview-loading {
+.nlf-preview-container:has(.nlf-preview-content.loaded) .nlf-preview-loading {
 	display: none;
 }
 
