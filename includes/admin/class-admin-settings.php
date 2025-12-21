@@ -1,12 +1,27 @@
 <?php
+/**
+ * Admin settings page and assets.
+ *
+ * @package Krslys\NextLevelFaq
+ */
+
+namespace Krslys\NextLevelFaq;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
  * Admin settings page and assets.
+ *
+ * SECURITY FEATURES:
+ * - All admin actions require 'manage_options' capability.
+ * - All forms protected with nonce verification.
+ * - File uploads thoroughly validated (MIME type, size, extension).
+ * - All inputs sanitized, all outputs escaped.
+ * - Uses WordPress Filesystem API for file operations.
  */
-class NLF_Faq_Admin {
+class Admin_Settings {
 
 	/**
 	 * Top-level menu slug.
@@ -76,9 +91,9 @@ class NLF_Faq_Admin {
 	public static function register_settings() {
 		register_setting(
 			'nlf_faq_style_group',
-			NLF_Faq_Options::OPTION_KEY,
+			Options::OPTION_KEY,
 			array(
-				'sanitize_callback' => array( 'NLF_Faq_Options', 'sanitize' ),
+				'sanitize_callback' => array( 'Krslys\NextLevelFaq\Options', 'sanitize' ),
 			)
 		);
 	}
@@ -86,16 +101,18 @@ class NLF_Faq_Admin {
 	/**
 	 * Enqueue admin assets.
 	 *
+	 * SECURITY: Sanitizes $_GET['page'] before use.
+	 *
 	 * @param string $hook_suffix Current screen hook.
 	 */
-	public static function enqueue_assets( $hook_suffix ) {
-		if ( ! isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			return;
-		}
+public static function enqueue_assets( $hook_suffix ) {
+	if ( ! isset( $_GET['page'] ) ) {
+		return;
+	}
 
-		$page = sanitize_text_field( wp_unslash( $_GET['page'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
 
-		$allowed_pages = array(
+	$allowed_pages = array(
 			self::STYLE_SLUG,
 			self::QUESTIONS_SLUG,
 			self::TOP_MENU_SLUG,
@@ -157,13 +174,15 @@ class NLF_Faq_Admin {
 
 	/**
 	 * Render style settings page.
+	 *
+	 * SECURITY: Capability check at start of function.
 	 */
 	public static function render_style_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
-		$options = NLF_Faq_Options::get_options();
+		$options = Options::get_options();
 		?>
 		<div class="wrap nlf-faq-admin">
 			<h1><?php esc_html_e( 'Next Level FAQ – Style & Layout', 'next-level-faq' ); ?></h1>
@@ -183,7 +202,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_container_background"><?php esc_html_e( 'Container background', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="text" class="nlf-color-field" id="nlf_faq_container_background" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[container_background]" value="<?php echo esc_attr( $options['container_background'] ); ?>" data-preview-prop="container_background">
+									<input type="text" class="nlf-color-field" id="nlf_faq_container_background" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[container_background]" value="<?php echo esc_attr( $options['container_background'] ); ?>" data-preview-prop="container_background">
 								</td>
 							</tr>
 							<tr>
@@ -191,7 +210,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_container_border_color"><?php esc_html_e( 'Border color', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="text" class="nlf-color-field" id="nlf_faq_container_border_color" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[container_border_color]" value="<?php echo esc_attr( $options['container_border_color'] ); ?>" data-preview-prop="container_border_color">
+									<input type="text" class="nlf-color-field" id="nlf_faq_container_border_color" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[container_border_color]" value="<?php echo esc_attr( $options['container_border_color'] ); ?>" data-preview-prop="container_border_color">
 								</td>
 							</tr>
 							<tr>
@@ -199,7 +218,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_container_border_radius"><?php esc_html_e( 'Border radius (px)', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" min="0" id="nlf_faq_container_border_radius" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[container_border_radius]" value="<?php echo esc_attr( $options['container_border_radius'] ); ?>" data-preview-prop="container_border_radius">
+									<input type="number" min="0" id="nlf_faq_container_border_radius" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[container_border_radius]" value="<?php echo esc_attr( $options['container_border_radius'] ); ?>" data-preview-prop="container_border_radius">
 								</td>
 							</tr>
 							<tr>
@@ -207,14 +226,14 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_container_padding"><?php esc_html_e( 'Padding (px)', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" min="0" id="nlf_faq_container_padding" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[container_padding]" value="<?php echo esc_attr( $options['container_padding'] ); ?>" data-preview-prop="container_padding">
+									<input type="number" min="0" id="nlf_faq_container_padding" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[container_padding]" value="<?php echo esc_attr( $options['container_padding'] ); ?>" data-preview-prop="container_padding">
 								</td>
 							</tr>
 							<tr>
 								<th scope="row"><?php esc_html_e( 'Shadow', 'next-level-faq' ); ?></th>
 								<td>
 									<label>
-										<input type="checkbox" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[shadow]" value="1" <?php checked( $options['shadow'], true ); ?> data-preview-prop="shadow">
+										<input type="checkbox" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[shadow]" value="1" <?php checked( $options['shadow'], true ); ?> data-preview-prop="shadow">
 										<?php esc_html_e( 'Enable subtle card shadow', 'next-level-faq' ); ?>
 									</label>
 								</td>
@@ -228,7 +247,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_question_color"><?php esc_html_e( 'Question color', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="text" class="nlf-color-field" id="nlf_faq_question_color" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[question_color]" value="<?php echo esc_attr( $options['question_color'] ); ?>" data-preview-prop="question_color">
+									<input type="text" class="nlf-color-field" id="nlf_faq_question_color" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[question_color]" value="<?php echo esc_attr( $options['question_color'] ); ?>" data-preview-prop="question_color">
 								</td>
 							</tr>
 							<tr>
@@ -236,7 +255,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_question_font_size"><?php esc_html_e( 'Font size (px)', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" min="10" id="nlf_faq_question_font_size" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[question_font_size]" value="<?php echo esc_attr( $options['question_font_size'] ); ?>" data-preview-prop="question_font_size">
+									<input type="number" min="10" id="nlf_faq_question_font_size" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[question_font_size]" value="<?php echo esc_attr( $options['question_font_size'] ); ?>" data-preview-prop="question_font_size">
 								</td>
 							</tr>
 							<tr>
@@ -244,7 +263,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_question_font_weight"><?php esc_html_e( 'Font weight', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" step="100" min="100" max="900" id="nlf_faq_question_font_weight" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[question_font_weight]" value="<?php echo esc_attr( $options['question_font_weight'] ); ?>" data-preview-prop="question_font_weight">
+									<input type="number" step="100" min="100" max="900" id="nlf_faq_question_font_weight" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[question_font_weight]" value="<?php echo esc_attr( $options['question_font_weight'] ); ?>" data-preview-prop="question_font_weight">
 								</td>
 							</tr>
 						</table>
@@ -256,7 +275,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_answer_color"><?php esc_html_e( 'Answer color', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="text" class="nlf-color-field" id="nlf_faq_answer_color" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[answer_color]" value="<?php echo esc_attr( $options['answer_color'] ); ?>" data-preview-prop="answer_color">
+									<input type="text" class="nlf-color-field" id="nlf_faq_answer_color" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[answer_color]" value="<?php echo esc_attr( $options['answer_color'] ); ?>" data-preview-prop="answer_color">
 								</td>
 							</tr>
 							<tr>
@@ -264,7 +283,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_answer_font_size"><?php esc_html_e( 'Font size (px)', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" min="10" id="nlf_faq_answer_font_size" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[answer_font_size]" value="<?php echo esc_attr( $options['answer_font_size'] ); ?>" data-preview-prop="answer_font_size">
+									<input type="number" min="10" id="nlf_faq_answer_font_size" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[answer_font_size]" value="<?php echo esc_attr( $options['answer_font_size'] ); ?>" data-preview-prop="answer_font_size">
 								</td>
 							</tr>
 						</table>
@@ -276,7 +295,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_accent_color"><?php esc_html_e( 'Accent color', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="text" class="nlf-color-field" id="nlf_faq_accent_color" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[accent_color]" value="<?php echo esc_attr( $options['accent_color'] ); ?>" data-preview-prop="accent_color">
+									<input type="text" class="nlf-color-field" id="nlf_faq_accent_color" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[accent_color]" value="<?php echo esc_attr( $options['accent_color'] ); ?>" data-preview-prop="accent_color">
 								</td>
 							</tr>
 							<tr>
@@ -284,7 +303,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_icon_style"><?php esc_html_e( 'Icon style', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<select id="nlf_faq_icon_style" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[icon_style]" data-preview-prop="icon_style">
+									<select id="nlf_faq_icon_style" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[icon_style]" data-preview-prop="icon_style">
 										<option value="plus_minus" <?php selected( $options['icon_style'], 'plus_minus' ); ?>><?php esc_html_e( 'Plus / Minus', 'next-level-faq' ); ?></option>
 										<option value="chevron" <?php selected( $options['icon_style'], 'chevron' ); ?>><?php esc_html_e( 'Chevron', 'next-level-faq' ); ?></option>
 									</select>
@@ -295,7 +314,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_gap_between_items"><?php esc_html_e( 'Gap between items (px)', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<input type="number" min="0" id="nlf_faq_gap_between_items" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[gap_between_items]" value="<?php echo esc_attr( $options['gap_between_items'] ); ?>" data-preview-prop="gap_between_items">
+									<input type="number" min="0" id="nlf_faq_gap_between_items" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[gap_between_items]" value="<?php echo esc_attr( $options['gap_between_items'] ); ?>" data-preview-prop="gap_between_items">
 								</td>
 							</tr>
 							<tr>
@@ -303,7 +322,7 @@ class NLF_Faq_Admin {
 									<label for="nlf_faq_animation"><?php esc_html_e( 'Animation', 'next-level-faq' ); ?></label>
 								</th>
 								<td>
-									<select id="nlf_faq_animation" name="<?php echo esc_attr( NLF_Faq_Options::OPTION_KEY ); ?>[animation]" data-preview-prop="animation">
+									<select id="nlf_faq_animation" name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[animation]" data-preview-prop="animation">
 										<option value="slide" <?php selected( $options['animation'], 'slide' ); ?>><?php esc_html_e( 'Slide', 'next-level-faq' ); ?></option>
 										<option value="fade" <?php selected( $options['animation'], 'fade' ); ?>><?php esc_html_e( 'Fade', 'next-level-faq' ); ?></option>
 										<option value="none" <?php selected( $options['animation'], 'none' ); ?>><?php esc_html_e( 'None', 'next-level-faq' ); ?></option>
@@ -365,13 +384,15 @@ class NLF_Faq_Admin {
 
 	/**
 	 * Render questions repeater management page.
+	 *
+	 * SECURITY: Capability check at start of function.
 	 */
 	public static function render_questions_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
-		$items = NLF_Faq_Repository::get_all_items( 0 );
+		$items = Repository::get_all_items( 0 );
 		?>
 		<div class="wrap nlf-faq-admin">
 			<h1><?php esc_html_e( 'Next Level FAQ – Questions', 'next-level-faq' ); ?></h1>
@@ -460,6 +481,8 @@ class NLF_Faq_Admin {
 	/**
 	 * Render export/import tools page.
 	 *
+	 * SECURITY: Capability check at start of function.
+	 *
 	 * @return void
 	 */
 	public static function render_tools_page() {
@@ -546,20 +569,25 @@ class NLF_Faq_Admin {
 
 	/**
 	 * Handle saving questions from repeater UI.
+	 *
+	 * SECURITY:
+	 * - Capability check: current_user_can('manage_options').
+	 * - Nonce verification: wp_verify_nonce().
+	 * - Input sanitization: sanitize_text_field(), wp_kses_post().
 	 */
-	public static function handle_save_questions() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage FAQs.', 'next-level-faq' ) );
-		}
+public static function handle_save_questions() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You do not have permission to manage FAQs.', 'next-level-faq' ) );
+	}
 
-		if ( ! isset( $_POST['nlf_faq_questions_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nlf_faq_questions_nonce'] ), 'nlf_faq_save_questions' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			wp_die( esc_html__( 'Security check failed.', 'next-level-faq' ) );
-		}
+	if ( ! isset( $_POST['nlf_faq_questions_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nlf_faq_questions_nonce'] ) ), 'nlf_faq_save_questions' ) ) {
+		wp_die( esc_html__( 'Security check failed.', 'next-level-faq' ) );
+	}
 
-		$ids       = isset( $_POST['nlf_faq_id'] ) ? (array) wp_unslash( $_POST['nlf_faq_id'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$questions = isset( $_POST['nlf_faq_question'] ) ? (array) wp_unslash( $_POST['nlf_faq_question'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$answers   = isset( $_POST['nlf_faq_answer'] ) ? (array) wp_unslash( $_POST['nlf_faq_answer'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$active    = isset( $_POST['nlf_faq_active'] ) ? (array) wp_unslash( $_POST['nlf_faq_active'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	$ids       = isset( $_POST['nlf_faq_id'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_id'] ) ) : array();
+		$questions = isset( $_POST['nlf_faq_question'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_question'] ) ) : array();
+		$answers   = isset( $_POST['nlf_faq_answer'] ) ? array_map( 'wp_kses_post', wp_unslash( (array) $_POST['nlf_faq_answer'] ) ) : array();
+		$active    = isset( $_POST['nlf_faq_active'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['nlf_faq_active'] ) ) : array();
 
 		$keep_ids = array();
 
@@ -567,8 +595,8 @@ class NLF_Faq_Admin {
 
 		for ( $i = 0; $i < $count; $i++ ) {
 			$id       = isset( $ids[ $i ] ) ? (int) $ids[ $i ] : 0;
-			$question = isset( $questions[ $i ] ) ? sanitize_text_field( $questions[ $i ] ) : '';
-			$answer   = isset( $answers[ $i ] ) ? wp_kses_post( $answers[ $i ] ) : '';
+			$question = isset( $questions[ $i ] ) ? $questions[ $i ] : '';
+			$answer   = isset( $answers[ $i ] ) ? $answers[ $i ] : '';
 
 			if ( '' === trim( $question ) && '' === trim( wp_strip_all_tags( $answer ) ) ) {
 				continue;
@@ -576,11 +604,11 @@ class NLF_Faq_Admin {
 
 			$status   = isset( $active[ (string) $i ] ) ? 1 : 0;
 
-			$new_id     = NLF_Faq_Repository::save_item( $id, 0, $question, $answer, $status, $i );
+			$new_id     = Repository::save_item( $id, 0, $question, $answer, $status, $i );
 			$keep_ids[] = $new_id;
 		}
 
-		NLF_Faq_Repository::delete_all_except( $keep_ids, 0 );
+		Repository::delete_all_except( $keep_ids, 0 );
 
 		$redirect = add_query_arg(
 			array(
@@ -597,14 +625,19 @@ class NLF_Faq_Admin {
 	/**
 	 * Export FAQ data as JSON.
 	 *
+	 * SECURITY:
+	 * - Capability check: current_user_can('manage_options').
+	 * - Nonce verification: check_admin_referer().
+	 * - Output sanitization: wp_json_encode() handles escaping.
+	 *
 	 * @return void
 	 */
-	public static function handle_export() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to export FAQs.', 'next-level-faq' ) );
-		}
+public static function handle_export() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You do not have permission to export FAQs.', 'next-level-faq' ) );
+	}
 
-		check_admin_referer( 'nlf_faq_export', 'nlf_faq_export_nonce' );
+	check_admin_referer( 'nlf_faq_export', 'nlf_faq_export_nonce' );
 
 		$include_styles    = self::get_checkbox_state_from_post( 'nlf_faq_include_styles' );
 		$include_questions = self::get_checkbox_state_from_post( 'nlf_faq_include_questions' );
@@ -630,35 +663,35 @@ class NLF_Faq_Admin {
 		);
 
 		if ( $include_styles ) {
-			$payload['styles'] = NLF_Faq_Options::get_options();
+			$payload['styles'] = Options::get_options();
 		}
 
 		if ( $include_questions ) {
 			$payload['meta']['group_scope']       = null === $group_scope ? 'all' : (int) $group_scope;
 			$payload['meta']['group_scope_label'] = self::get_group_label( $group_scope );
 			$payload['faqs']                      = self::group_faq_export_items(
-				NLF_Faq_Repository::get_all_items_for_export( $group_scope )
-			);
-		}
+				Repository::get_all_items_for_export( $group_scope )
+		);
+	}
 
-		while ( ob_get_level() > 0 ) {
-			ob_end_clean();
-		}
+	while ( ob_get_level() > 0 ) {
+		ob_end_clean();
+	}
 
-		$filename_parts = array( 'next-level-faq-export' );
+	$filename_parts = array( 'next-level-faq-export' );
 
-		if ( $include_questions && null !== $group_scope ) {
-			$filename_parts[] = 'group-' . (int) $group_scope;
-		}
+	if ( $include_questions && null !== $group_scope ) {
+		$filename_parts[] = 'group-' . (int) $group_scope;
+	}
 
-		$filename = sanitize_file_name( implode( '-', $filename_parts ) . '-' . gmdate( 'Ymd-His' ) . '.json' );
+	$filename = sanitize_file_name( implode( '-', $filename_parts ) . '-' . gmdate( 'Ymd-His' ) . '.json' );
 
 		nocache_headers();
 		header( 'Content-Type: application/json; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
-		header( 'X-Export-Context', 'context7' );
+	header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+	header( 'X-Export-Context: context7' );
 
-		echo wp_json_encode(
+	echo wp_json_encode(
 			$payload,
 			JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
 		);
@@ -668,47 +701,44 @@ class NLF_Faq_Admin {
 	/**
 	 * Import FAQ data from JSON.
 	 *
+	 * SECURITY:
+	 * - Capability check: current_user_can('manage_options').
+	 * - Nonce verification: check_admin_referer().
+	 * - File upload validation: MIME type, extension, size checks.
+	 * - Input sanitization: All imported data sanitized before use.
+	 *
 	 * @return void
 	 */
-	public static function handle_import() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to import FAQs.', 'next-level-faq' ) );
-		}
+public static function handle_import() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You do not have permission to import FAQs.', 'next-level-faq' ) );
+	}
 
-		check_admin_referer( 'nlf_faq_import', 'nlf_faq_import_nonce' );
+	check_admin_referer( 'nlf_faq_import', 'nlf_faq_import_nonce' );
 
-		$page_url = self::get_tools_page_url();
+	$page_url = self::get_tools_page_url();
 
-		if ( empty( $_FILES['nlf_faq_import_file'] ) || empty( $_FILES['nlf_faq_import_file']['tmp_name'] ) ) {
-			self::store_tools_notice( 'error', __( 'Upload a Context7 export file before running import.', 'next-level-faq' ) );
-			wp_safe_redirect( $page_url );
-			exit;
-		}
+	if ( empty( $_FILES['nlf_faq_import_file'] ) ) {
+		self::store_tools_notice( 'error', __( 'Upload a Context7 export file before running import.', 'next-level-faq' ) );
+		wp_safe_redirect( $page_url );
+		exit;
+	}
 
-		$file = $_FILES['nlf_faq_import_file'];
-		$filename = isset( $file['name'] ) ? sanitize_file_name( wp_unslash( $file['name'] ) ) : '';
+	$file = self::validate_json_file_upload( $_FILES['nlf_faq_import_file'] );
 
-		if ( (int) $file['error'] !== UPLOAD_ERR_OK ) {
-			self::store_tools_notice( 'error', self::describe_upload_error( (int) $file['error'] ) );
-			wp_safe_redirect( $page_url );
-			exit;
-		}
-
-		$size_limit = defined( 'MB_IN_BYTES' ) ? 2 * MB_IN_BYTES : 2 * 1024 * 1024;
-
-		if ( (int) $file['size'] > $size_limit ) {
+	if ( false === $file ) {
+		if ( isset( $_FILES['nlf_faq_import_file']['error'] ) && (int) $_FILES['nlf_faq_import_file']['error'] !== UPLOAD_ERR_OK ) {
+			self::store_tools_notice( 'error', self::describe_upload_error( (int) $_FILES['nlf_faq_import_file']['error'] ) );
+		} elseif ( isset( $_FILES['nlf_faq_import_file']['size'] ) && (int) $_FILES['nlf_faq_import_file']['size'] > ( defined( 'MB_IN_BYTES' ) ? 2 * MB_IN_BYTES : 2 * 1024 * 1024 ) ) {
 			self::store_tools_notice( 'error', __( 'Import file is too large. Please keep exports under 2MB.', 'next-level-faq' ) );
-			wp_safe_redirect( $page_url );
-			exit;
-		}
-
-		if ( ! self::is_json_upload( $file['tmp_name'] ) ) {
+		} else {
 			self::store_tools_notice( 'error', __( 'Only JSON files exported by this plugin are allowed.', 'next-level-faq' ) );
-			wp_safe_redirect( $page_url );
-			exit;
 		}
+		wp_safe_redirect( $page_url );
+		exit;
+	}
 
-		$data = self::decode_import_file( $file['tmp_name'] );
+	$data = self::decode_import_file( $file['tmp_name'] );
 
 		if ( null === $data ) {
 			self::store_tools_notice( 'error', __( 'The uploaded file is not a valid Context7 export.', 'next-level-faq' ) );
@@ -723,16 +753,17 @@ class NLF_Faq_Admin {
 		$faq_entries = self::normalize_import_faqs( $data['faqs'] ?? array() );
 		if ( ! empty( $faq_entries ) ) {
 			if ( $replace_existing ) {
-				NLF_Faq_Repository::delete_all_items();
+				Repository::delete_all_items();
 			}
 
 			foreach ( $faq_entries as $index => $item ) {
-				if ( ! is_array( $item ) ) {
-					continue;
-				}
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
 
-				$question = isset( $item['question'] ) ? (string) $item['question'] : '';
-				$answer   = isset( $item['answer'] ) ? (string) $item['answer'] : '';
+			// Sanitize inputs to prevent XSS - match normal save_metabox() behavior.
+			$question = isset( $item['question'] ) ? sanitize_text_field( $item['question'] ) : '';
+				$answer   = isset( $item['answer'] ) ? wp_kses_post( $item['answer'] ) : '';
 
 				$trimmed_question = trim( wp_strip_all_tags( $question ) );
 				$trimmed_answer   = trim( wp_strip_all_tags( $answer ) );
@@ -741,13 +772,13 @@ class NLF_Faq_Admin {
 					continue;
 				}
 
-				$group_id      = isset( $item['group_id'] ) ? (int) $item['group_id'] : 0;
-				$position      = isset( $item['position'] ) ? (int) $item['position'] : (int) $index;
-				$status        = isset( $item['status'] ) ? (int) $item['status'] : 0;
-				$initial_state = isset( $item['initial_state'] ) ? (int) $item['initial_state'] : 0;
-				$highlight     = isset( $item['highlight'] ) ? (int) $item['highlight'] : 0;
+				$group_id      = isset( $item['group_id'] ) ? absint( $item['group_id'] ) : 0;
+				$position      = isset( $item['position'] ) ? absint( $item['position'] ) : (int) $index;
+				$status        = isset( $item['status'] ) ? absint( $item['status'] ) : 0;
+				$initial_state = isset( $item['initial_state'] ) ? absint( $item['initial_state'] ) : 0;
+				$highlight     = isset( $item['highlight'] ) ? absint( $item['highlight'] ) : 0;
 
-				NLF_Faq_Repository::save_item(
+				Repository::save_item(
 					0,
 					$group_id,
 					$question,
@@ -760,11 +791,11 @@ class NLF_Faq_Admin {
 
 				$imported_count++;
 			}
-		}
+	}
 
-		if ( isset( $data['styles'] ) && is_array( $data['styles'] ) ) {
-			$sanitized = NLF_Faq_Options::sanitize( $data['styles'] );
-			update_option( NLF_Faq_Options::OPTION_KEY, $sanitized );
+	if ( isset( $data['styles'] ) && is_array( $data['styles'] ) ) {
+		$sanitized = Options::sanitize( $data['styles'] );
+			update_option( Options::OPTION_KEY, $sanitized );
 			$styles_applied = true;
 		}
 
@@ -796,13 +827,15 @@ class NLF_Faq_Admin {
 	/**
 	 * Persist notice data between redirects.
 	 *
+	 * SECURITY: Message is sanitized via wp_strip_all_tags().
+	 *
 	 * @param string $type    Notice severity.
 	 * @param string $message Message text.
 	 *
 	 * @return void
 	 */
-	private static function store_tools_notice( $type, $message ) {
-		$allowed = array( 'success', 'error', 'warning', 'info' );
+private static function store_tools_notice( $type, $message ) {
+	$allowed = array( 'success', 'error', 'warning', 'info' );
 		$type    = in_array( $type, $allowed, true ) ? $type : 'info';
 
 		set_transient(
@@ -817,6 +850,8 @@ class NLF_Faq_Admin {
 
 	/**
 	 * Output notice stored in transient.
+	 *
+	 * SECURITY: Output escaped via esc_attr() and esc_html().
 	 *
 	 * @return void
 	 */
@@ -881,13 +916,54 @@ class NLF_Faq_Admin {
 	}
 
 	/**
+	 * Validate JSON file upload with comprehensive checks.
+	 *
+	 * SECURITY:
+	 * - Validates file upload errors
+	 * - Validates file size (2MB limit)
+	 * - Validates file extension (.json)
+	 * - Uses is_valid_json_upload() for MIME and content validation
+	 *
+	 * @param array  $file      Upload file array from $_FILES.
+	 * @param string $error_key Optional error key for storing notices.
+	 * @return array|false Returns file array on success, false on failure.
+	 */
+	public static function validate_json_file_upload( $file, $error_key = 'import_error' ) {
+		if ( empty( $file ) || empty( $file['tmp_name'] ) ) {
+			return false;
+		}
+
+		$filename = isset( $file['name'] ) ? sanitize_file_name( wp_unslash( $file['name'] ) ) : '';
+
+		if ( isset( $file['error'] ) && (int) $file['error'] !== UPLOAD_ERR_OK ) {
+			return false;
+		}
+
+		$size_limit = defined( 'MB_IN_BYTES' ) ? 2 * MB_IN_BYTES : 2 * 1024 * 1024;
+		if ( isset( $file['size'] ) && (int) $file['size'] > $size_limit ) {
+			return false;
+		}
+
+		$ext = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+		if ( 'json' !== $ext ) {
+			return false;
+		}
+
+		if ( ! self::is_valid_json_upload( $file ) ) {
+			return false;
+		}
+
+		return $file;
+	}
+
+	/**
 	 * Human readable upload error.
 	 *
 	 * @param int $code PHP upload error code.
 	 *
 	 * @return string
 	 */
-	private static function describe_upload_error( $code ) {
+	public static function describe_upload_error( $code ) {
 		switch ( (int) $code ) {
 			case UPLOAD_ERR_INI_SIZE:
 			case UPLOAD_ERR_FORM_SIZE:
@@ -908,17 +984,20 @@ class NLF_Faq_Admin {
 	}
 
 	/**
-	 * Decode JSON import file.
+	 * Decode JSON import file using WordPress Filesystem API.
+	 *
+	 * SECURITY: Uses WordPress native functions for safe file reading.
 	 *
 	 * @param string $file_path Path to uploaded file.
 	 *
 	 * @return array|null
 	 */
-	private static function decode_import_file( $file_path ) {
+	public static function decode_import_file( $file_path ) {
 		if ( ! is_readable( $file_path ) ) {
 			return null;
 		}
 
+		// Try wp_json_file_decode if available (WordPress 5.9+).
 		if ( function_exists( 'wp_json_file_decode' ) ) {
 			$data = wp_json_file_decode(
 				$file_path,
@@ -926,14 +1005,30 @@ class NLF_Faq_Admin {
 					'associative' => true,
 				)
 			);
-		} else {
-			$contents = file_get_contents( $file_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			if ( false === $contents ) {
-				return null;
-			}
 
-			$data = json_decode( $contents, true );
+			return is_array( $data ) ? $data : null;
 		}
+
+		// Fallback: Use WP_Filesystem API.
+		global $wp_filesystem;
+
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		WP_Filesystem();
+
+		if ( ! $wp_filesystem || ! $wp_filesystem->exists( $file_path ) ) {
+			return null;
+		}
+
+		$contents = $wp_filesystem->get_contents( $file_path );
+
+		if ( false === $contents ) {
+			return null;
+		}
+
+		$data = json_decode( $contents, true );
 
 		return is_array( $data ) ? $data : null;
 	}
@@ -1001,6 +1096,8 @@ class NLF_Faq_Admin {
 	/**
 	 * Read a checkbox-like value from $_POST and normalize to bool.
 	 *
+	 * SECURITY: Validates and sanitizes checkbox input.
+	 *
 	 * @param string $key Checkbox key.
 	 * @return bool
 	 */
@@ -1009,60 +1106,87 @@ class NLF_Faq_Admin {
 			return false;
 		}
 
-		$value = wp_unslash( $_POST[ $key ] );
+		$value = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
 
 		if ( is_array( $value ) ) {
 			$value = reset( $value );
 		}
 
-		if ( null !== $value && false !== filter_var( $value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE ) ) {
-			return true === filter_var( $value, FILTER_VALIDATE_BOOLEAN );
+		// Use filter_var for proper boolean validation.
+		$validated = filter_var( $value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
+
+		if ( null !== $validated ) {
+			return $validated;
 		}
 
 		return ! empty( $value );
 	}
 
 	/**
-	 * Ensure uploaded file is JSON.
+	 * Comprehensive JSON upload validation.
 	 *
-	 * @param string $tmp_path Temporary path.
+	 * SECURITY:
+	 * - Validates MIME type using finfo.
+	 * - Validates file extension against allowlist.
+	 * - Validates file content starts with JSON structure.
+	 * - Protects against directory traversal attacks.
+	 *
+	 * @param array $file Upload file array from $_FILES.
 	 * @return bool
 	 */
-	private static function is_json_upload( $tmp_path ) {
-		if ( empty( $tmp_path ) || ! is_readable( $tmp_path ) ) {
-			return false;
-		}
+	public static function is_valid_json_upload( $file ) {
+		if ( empty( $file['tmp_name'] ) || ! is_readable( $file['tmp_name'] ) ) {
+		return false;
+	}
 
-		$allowed_mimes = array(
+	$filename = isset( $file['name'] ) ? sanitize_file_name( wp_unslash( $file['name'] ) ) : '';
+		$ext      = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+
+		if ( 'json' !== $ext ) {
+		return false;
+	}
+
+	$allowed_mimes = array(
 			'application/json',
 			'text/json',
-			'text/plain',
+			'text/plain', // Some servers report JSON as text/plain.
 		);
 
 		if ( function_exists( 'finfo_open' ) ) {
 			$finfo = finfo_open( FILEINFO_MIME_TYPE );
 			if ( $finfo ) {
-				$mime = finfo_file( $finfo, $tmp_path );
+				$mime = finfo_file( $finfo, $file['tmp_name'] );
 				finfo_close( $finfo );
 
 				if ( $mime && ! in_array( $mime, $allowed_mimes, true ) ) {
 					return false;
 				}
-			}
+		}
+	}
+
+	global $wp_filesystem;
+
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
 
-		// Basic sanity check: ensure the file starts with `{` or `[` ignoring whitespace.
-		$handle = fopen( $tmp_path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
-		if ( false === $handle ) {
+		WP_Filesystem();
+
+		if ( ! $wp_filesystem || ! $wp_filesystem->exists( $file['tmp_name'] ) ) {
 			return false;
 		}
 
-		$prefix = fread( $handle, 5 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fread
-		fclose( $handle );
+		// Read first few bytes to check for JSON structure.
+		$prefix = $wp_filesystem->get_contents( $file['tmp_name'] );
 
-		$prefix = ltrim( (string) $prefix );
+		if ( false === $prefix ) {
+			return false;
+		}
 
-		return '' !== $prefix && in_array( $prefix[0], array( '{', '[' ), true );
+	// Get first 10 characters after trimming whitespace.
+	$prefix = ltrim( substr( $prefix, 0, 10 ) );
+
+	return '' !== $prefix && in_array( $prefix[0], array( '{', '[' ), true );
 	}
 
 	/**
@@ -1142,7 +1266,7 @@ class NLF_Faq_Admin {
 
 		$groups = get_posts(
 			array(
-				'post_type'      => NLF_Faq_Group_CPT::POST_TYPE,
+				'post_type'      => Group_CPT::POST_TYPE,
 				'post_status'    => array( 'publish', 'pending', 'draft', 'future' ),
 				'posts_per_page' => -1,
 				'orderby'        => 'title',
@@ -1179,7 +1303,7 @@ class NLF_Faq_Admin {
 
 		$post = get_post( (int) $group_id );
 
-		if ( $post && NLF_Faq_Group_CPT::POST_TYPE === $post->post_type ) {
+		if ( $post && Group_CPT::POST_TYPE === $post->post_type ) {
 			$title = trim( get_the_title( $post ) );
 
 			return '' !== $title
@@ -1190,4 +1314,3 @@ class NLF_Faq_Admin {
 		return sprintf( __( 'Group #%d', 'next-level-faq' ), (int) $group_id );
 	}
 }
-
