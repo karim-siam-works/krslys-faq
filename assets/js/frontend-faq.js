@@ -1,6 +1,11 @@
 (function () {
 	'use strict';
 
+	var analyticsConfig = (typeof window !== 'undefined' && window.nlfFaqData) ? window.nlfFaqData : null;
+	if (analyticsConfig && analyticsConfig.tracking === false) {
+		analyticsConfig = null;
+	}
+
 	function toggleItem(item, container) {
 		if (!item) {
 			return;
@@ -23,6 +28,11 @@
 			item.classList.remove('is-open');
 		} else {
 			item.classList.add('is-open');
+			trackAnalytics(container, item, 'open');
+		}
+
+		if (isOpen) {
+			trackAnalytics(container, item, 'close');
 		}
 
 		// Smooth scroll if enabled
@@ -99,6 +109,73 @@
 	document.addEventListener('DOMContentLoaded', function () {
 		initFaq();
 	});
+
+	function trackAnalytics(container, item, action) {
+		if (!analyticsConfig) {
+			return;
+		}
+
+		var groupId = container ? container.getAttribute('data-group-id') : null;
+		var questionId = item ? item.getAttribute('data-faq-id') : null;
+
+		if (!groupId || !questionId) {
+			return;
+		}
+
+		var payload = {
+			groupId: parseInt(groupId, 10),
+			questionId: parseInt(questionId, 10),
+			action: action,
+		};
+
+		if (typeof window.nlfFaqAnalytics === 'function') {
+			try {
+				window.nlfFaqAnalytics(payload);
+			} catch (error) {
+				// no-op
+			}
+		}
+
+		if (Array.isArray(window.dataLayer)) {
+			window.dataLayer.push({
+				event: 'nlfFaqInteraction',
+				nlfFaq: payload,
+			});
+		}
+
+		if (action === 'open') {
+			sendAnalyticsBeacon(payload);
+		}
+	}
+
+	function sendAnalyticsBeacon(payload) {
+		if (!analyticsConfig || !analyticsConfig.ajaxurl || !analyticsConfig.nonce) {
+			return;
+		}
+
+		var params = new URLSearchParams();
+		params.append('action', 'nlf_faq_track');
+		params.append('group_id', String(payload.groupId));
+		params.append('question_id', String(payload.questionId));
+		params.append('state', payload.action);
+		params.append('nonce', analyticsConfig.nonce);
+
+		var body = params.toString();
+
+		if (navigator.sendBeacon) {
+			navigator.sendBeacon(analyticsConfig.ajaxurl, body);
+			return;
+		}
+
+		fetch(analyticsConfig.ajaxurl, {
+			method: 'POST',
+			credentials: 'same-origin',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+			},
+			body: body,
+		});
+	}
 })();
 
 

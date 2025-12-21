@@ -79,6 +79,7 @@ final class Krslys_NextLevelFaq_Plugin {
 		add_action( 'plugins_loaded', array( '\Krslys\NextLevelFaq\Repository', 'maybe_create_table' ) );
 		add_action( 'init', array( '\Krslys\NextLevelFaq\Group_CPT', 'register' ) );
 		add_action( 'init', array( '\Krslys\NextLevelFaq\Frontend_Renderer', 'register_shortcodes' ) );
+		add_action( 'init', array( '\Krslys\NextLevelFaq\Frontend_Renderer', 'register_tracking_routes' ) );
 		add_action( 'wp_enqueue_scripts', array( '\Krslys\NextLevelFaq\Frontend_Renderer', 'enqueue_styles' ) );
 		add_action( 'admin_menu', array( '\Krslys\NextLevelFaq\Admin_Settings', 'register_menu' ) );
 		add_action( 'admin_init', array( '\Krslys\NextLevelFaq\Admin_Settings', 'register_settings' ) );

@@ -8,6 +8,20 @@
 
 	const hasTabs = () => Boolean($('.nlf-faq-tabs-nav'));
 
+	const previewContexts = {
+		main: () => $$('.nlf-preview-container[data-preview="main"]'),
+		appearance: () => $$('.nlf-preview-container[data-preview="appearance"]'),
+	};
+
+	const previewState = {
+		auto: {
+			main: true,
+			appearance: true,
+		},
+		timers: new Map(),
+		delay: 400,
+	};
+
 	function init() {
 		if (!hasTabs()) {
 			return;
@@ -21,6 +35,7 @@
 		initUnsavedWarning();
 		initDeviceToggle();
 		initPreviewRefresh();
+		initAutoRefreshToggle();
 		initHelpTooltips();
 		initEmptyStateHandlers();
 		initQuestionList();
@@ -55,11 +70,11 @@
 			});
 
 			if (target === 'preview') {
-				loadLivePreview($$('.nlf-preview-container[data-preview="main"]'));
+				requestPreview('main', true);
 			}
 
 			if (target === 'appearance') {
-				loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]'));
+				requestPreview('appearance', true);
 			}
 		};
 
@@ -128,7 +143,7 @@
 			input.addEventListener('change', () => {
 				options.forEach((opt) => opt.classList.remove('is-active'));
 				option.classList.add('is-active');
-				loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]'));
+				requestPreview('appearance');
 			});
 		});
 	}
@@ -143,7 +158,7 @@
 
 		toggle.addEventListener('change', () => {
 			fields.style.display = toggle.checked ? '' : 'none';
-			loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]'));
+			requestPreview('appearance');
 		});
 	}
 
@@ -154,8 +169,8 @@
 		}
 
 		window.jQuery('.nlf-color-picker').wpColorPicker({
-			change: () => loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]')),
-			clear: () => loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]')),
+			change: () => requestPreview('appearance'),
+			clear: () => requestPreview('appearance'),
 		});
 	}
 
@@ -203,6 +218,8 @@
 				window.jQuery(input).wpColorPicker('color', '');
 			}
 		});
+
+		requestPreview('appearance', true);
 	}
 
 	function resetCustomStyles() {
@@ -234,7 +251,29 @@
 			}
 		});
 
-		loadLivePreview($$('.nlf-preview-container[data-preview="appearance"]'));
+		requestPreview('appearance', true);
+	}
+
+	function requestPreview(context, immediate = false) {
+		if (!previewContexts[context]) {
+			return;
+		}
+
+		if (!previewState.auto[context] && !immediate) {
+			return;
+		}
+
+		if (previewState.timers.has(context)) {
+			clearTimeout(previewState.timers.get(context));
+		}
+
+		const delay = immediate ? 0 : previewState.delay;
+		const timer = setTimeout(() => {
+			loadLivePreview(previewContexts[context]());
+			previewState.timers.delete(context);
+		}, delay);
+
+		previewState.timers.set(context, timer);
 	}
 
 	// Live preview via fetch
@@ -410,10 +449,28 @@
 			}
 			event.preventDefault();
 			const context = trigger.getAttribute('data-refresh-preview') || 'main';
-			const containers = context === 'appearance'
-				? $$('.nlf-preview-container[data-preview="appearance"]')
-				: $$('.nlf-preview-container[data-preview="main"]');
-			loadLivePreview(containers);
+			requestPreview(context, true);
+		});
+	}
+
+	function initAutoRefreshToggle() {
+		$$('.nlf-preview-auto-toggle').forEach((toggle) => {
+			const context = toggle.getAttribute('data-preview-auto') || 'main';
+			previewState.auto[context] = !!toggle.checked;
+		});
+
+		doc.addEventListener('change', (event) => {
+			const toggle = event.target.closest('.nlf-preview-auto-toggle');
+			if (!toggle) {
+				return;
+			}
+
+			const context = toggle.getAttribute('data-preview-auto') || 'main';
+			previewState.auto[context] = !!toggle.checked;
+
+			if (toggle.checked) {
+				requestPreview(context);
+			}
 		});
 	}
 
@@ -469,6 +526,7 @@
 		if (table) {
 			table.style.display = '';
 		}
+		requestPreview('main');
 	}
 
 	function initQuestionList() {
@@ -502,6 +560,7 @@
 				prepareRow(newRow);
 				initNewEditor(newRow);
 				renumberGroupCheckboxes();
+				requestPreview('main');
 			});
 		}
 
@@ -531,6 +590,7 @@
 
 			row.remove();
 			renumberGroupCheckboxes();
+			requestPreview('main');
 		});
 	}
 
@@ -576,6 +636,7 @@
 		storedEditors = [];
 		dragSource = null;
 		renumberGroupCheckboxes();
+		requestPreview('main');
 	}
 
 	function removeEditors(row) {

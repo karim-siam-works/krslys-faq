@@ -60,6 +60,75 @@ class Frontend_Renderer {
 			NLF_FAQ_VERSION,
 			true
 		);
+
+		wp_localize_script(
+			'nlf-faq-frontend',
+			'nlfFaqData',
+			array(
+				'ajaxurl'   => admin_url( 'admin-ajax.php' ),
+				'nonce'     => wp_create_nonce( 'nlf_faq_track' ),
+				'tracking'  => true,
+			)
+		);
+	}
+	/**
+	 * Register AJAX routes for analytics tracking.
+	 */
+	public static function register_tracking_routes() {
+		add_action( 'wp_ajax_nlf_faq_track', array( __CLASS__, 'track_interaction' ) );
+		add_action( 'wp_ajax_nopriv_nlf_faq_track', array( __CLASS__, 'track_interaction' ) );
+	}
+
+	/**
+	 * Handle analytics tracking requests.
+	 */
+	public static function track_interaction() {
+		check_ajax_referer( 'nlf_faq_track', 'nonce' );
+
+		$group_id    = isset( $_POST['group_id'] ) ? absint( $_POST['group_id'] ) : 0;
+		$question_id = isset( $_POST['question_id'] ) ? absint( $_POST['question_id'] ) : 0;
+		$state       = isset( $_POST['state'] ) ? sanitize_key( $_POST['state'] ) : '';
+
+		if ( $group_id <= 0 || $question_id <= 0 ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid tracking payload.', 'next-level-faq' ) ), 400 );
+		}
+
+		$stats = get_post_meta( $group_id, '_nlf_faq_stats', true );
+
+		if ( ! is_array( $stats ) ) {
+			$stats = array();
+		}
+
+		if ( ! isset( $stats[ $question_id ] ) ) {
+			$stats[ $question_id ] = array(
+				'opens'  => 0,
+				'closes' => 0,
+			);
+		}
+
+		if ( 'open' === $state ) {
+			$stats[ $question_id ]['opens'] ++;
+		} elseif ( 'close' === $state ) {
+			$stats[ $question_id ]['closes'] ++;
+		}
+
+		update_post_meta( $group_id, '_nlf_faq_stats', $stats );
+
+		/**
+		 * Fires after an FAQ interaction is tracked.
+		 *
+		 * @param array $payload Tracking data.
+		 */
+		do_action(
+			'nlf_faq_tracked_event',
+			array(
+				'group_id'    => $group_id,
+				'question_id' => $question_id,
+				'state'       => $state,
+			)
+		);
+
+		wp_send_json_success();
 	}
 
 	/**
@@ -179,6 +248,7 @@ public static function render_shortcode( $atts, $content = '' ) {
 		ob_start();
 		?>
 		<div class="<?php echo esc_attr( implode( ' ', $faq_classes ) ); ?>" 
+			data-group-id="<?php echo esc_attr( $group_id ); ?>"
 			data-animation-speed="<?php echo esc_attr( $settings['animation_speed'] ?? 'normal' ); ?>"
 			data-accordion="<?php echo ! empty( $settings['accordion_mode'] ) ? '1' : '0'; ?>"
 			data-smooth-scroll="<?php echo ! empty( $settings['smooth_scroll'] ) ? '1' : '0'; ?>">
