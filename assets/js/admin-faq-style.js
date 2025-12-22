@@ -8,7 +8,10 @@
 		}
 
 		var container = root.find('.nlf-faq');
+		var icons = container.find('.nlf-faq__icon');
+		var iconStyle = root.data('icon-style') || 'plus_minus';
 
+		// Container styles
 		container.css({
 			backgroundColor: root.data('container-background'),
 			borderColor: root.data('container-border-color'),
@@ -19,20 +22,58 @@
 				: 'none'
 		});
 
+		// Item spacing
 		container.find('.nlf-faq__item + .nlf-faq__item').css('margin-top', root.data('gap-between-items') + 'px');
 
+		// Question styles
 		container.find('.nlf-faq__question').css({
 			color: root.data('question-color'),
 			fontSize: root.data('question-font-size') + 'px',
 			fontWeight: root.data('question-font-weight')
 		});
 
+		// Answer styles
 		container.find('.nlf-faq__answer').css({
 			color: root.data('answer-color'),
 			fontSize: root.data('answer-font-size') + 'px'
 		});
 
-		container.find('.nlf-faq__icon').css('color', root.data('accent-color'));
+		// Icon color
+		icons.css('color', root.data('accent-color'));
+
+		// Icon style - inject dynamic CSS
+		var styleId = 'nlf-faq-preview-icon-style';
+		var $existingStyle = $('#' + styleId);
+		if ($existingStyle.length) {
+			$existingStyle.remove();
+		}
+
+		var iconCss = '';
+		if (iconStyle === 'chevron') {
+			iconCss = '#nlf-faq-preview-root .nlf-faq__icon::before {' +
+				'content: "›";' +
+				'display: block;' +
+				'transform: rotate(90deg);' +
+				'transition: transform 200ms ease;' +
+				'}' +
+				'#nlf-faq-preview-root .nlf-faq__item.is-open .nlf-faq__icon::before {' +
+				'transform: rotate(270deg);' +
+				'}';
+		} else {
+			iconCss = '#nlf-faq-preview-root .nlf-faq__icon::before {' +
+				'content: "+";' +
+				'font-weight: 700;' +
+				'font-size: 1.125rem;' +
+				'line-height: 1;' +
+				'}' +
+				'#nlf-faq-preview-root .nlf-faq__item.is-open .nlf-faq__icon::before {' +
+				'content: "-";' +
+				'}';
+		}
+
+		if (iconCss) {
+			$('<style id="' + styleId + '">' + iconCss + '</style>').appendTo('head');
+		}
 	}
 
 	function updateDataProp(prop, value) {
@@ -41,51 +82,40 @@
 			return;
 		}
 
-		switch (prop) {
-			case 'container_background':
-				root.data('container-background', value);
-				break;
-			case 'container_border_color':
-				root.data('container-border-color', value);
-				break;
-			case 'container_border_radius':
-				root.data('container-border-radius', parseInt(value, 10) || 0);
-				break;
-			case 'container_padding':
-				root.data('container-padding', parseInt(value, 10) || 0);
-				break;
-			case 'question_color':
-				root.data('question-color', value);
-				break;
-			case 'question_font_size':
-				root.data('question-font-size', parseInt(value, 10) || 16);
-				break;
-			case 'question_font_weight':
-				root.data('question-font-weight', parseInt(value, 10) || 600);
-				break;
-			case 'answer_color':
-				root.data('answer-color', value);
-				break;
-			case 'answer_font_size':
-				root.data('answer-font-size', parseInt(value, 10) || 14);
-				break;
-			case 'accent_color':
-				root.data('accent-color', value);
-				break;
-			case 'gap_between_items':
-				root.data('gap-between-items', parseInt(value, 10) || 12);
-				break;
-			case 'shadow':
-				root.data('shadow', value ? 1 : 0);
-				break;
-			case 'animation':
-				root.data('animation', value);
-				break;
-			case 'icon_style':
-				root.data('icon-style', value);
-				break;
+		// Map property names to data attributes
+		var propMap = {
+			'container_background': 'container-background',
+			'container_border_color': 'container-border-color',
+			'container_border_radius': 'container-border-radius',
+			'container_padding': 'container-padding',
+			'question_color': 'question-color',
+			'question_font_size': 'question-font-size',
+			'question_font_weight': 'question-font-weight',
+			'answer_color': 'answer-color',
+			'answer_font_size': 'answer-font-size',
+			'accent_color': 'accent-color',
+			'gap_between_items': 'gap-between-items',
+			'shadow': 'shadow',
+			'animation': 'animation',
+			'icon_style': 'icon-style'
+		};
+
+		var dataKey = propMap[prop];
+		if (!dataKey) {
+			return;
 		}
 
+		// Parse numeric values
+		var numericProps = ['container_border_radius', 'container_padding', 'question_font_size', 
+			'question_font_weight', 'answer_font_size', 'gap_between_items'];
+		if (numericProps.indexOf(prop) !== -1) {
+			value = parseInt(value, 10) || (prop === 'question_font_weight' ? 600 : 
+				prop === 'question_font_size' ? 16 : prop === 'answer_font_size' ? 14 : 0);
+		} else if (prop === 'shadow') {
+			value = value ? 1 : 0;
+		}
+
+		root.data(dataKey, value);
 		applyPreviewFromData();
 	}
 

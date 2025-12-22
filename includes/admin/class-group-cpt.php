@@ -127,6 +127,18 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 			NLF_FAQ_VERSION
 		);
 
+		// Enqueue generated FAQ styles for preview
+		$css_path = Style_Generator::get_css_file_path();
+		$css_url  = Style_Generator::get_css_file_url();
+		if ( $css_url && $css_path && file_exists( $css_path ) ) {
+			wp_enqueue_style(
+				'nlf-faq-generated',
+				esc_url_raw( $css_url ),
+				array( 'nlf-faq-admin' ),
+				filemtime( $css_path )
+			);
+		}
+
 		wp_enqueue_script(
 			'nlf-faq-group-metabox',
 			NLF_FAQ_PLUGIN_URL . 'assets/js/admin-faq-group-metabox.js',

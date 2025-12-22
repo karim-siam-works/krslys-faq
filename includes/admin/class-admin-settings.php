@@ -130,6 +130,20 @@ public static function enqueue_assets( $hook_suffix ) {
 			NLF_FAQ_VERSION
 		);
 
+		// Enqueue generated CSS for style page preview.
+		if ( in_array( $page, array( self::STYLE_SLUG, self::TOP_MENU_SLUG ), true ) ) {
+			$css_path = Style_Generator::get_css_file_path();
+			$css_url  = Style_Generator::get_css_file_url();
+			if ( $css_url && $css_path && file_exists( $css_path ) ) {
+				wp_enqueue_style(
+					'nlf-faq-generated',
+					esc_url_raw( $css_url ),
+					array( 'nlf-faq-admin' ),
+					filemtime( $css_path )
+				);
+			}
+		}
+
 		// Enqueue WordPress color picker for style page only.
 		if ( in_array( $page, array( self::STYLE_SLUG, self::TOP_MENU_SLUG ), true ) ) {
 			wp_enqueue_style( 'wp-color-picker' );
