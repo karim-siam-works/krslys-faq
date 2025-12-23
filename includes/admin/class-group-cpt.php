@@ -139,10 +139,19 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 			);
 		}
 
+		// Enqueue frontend FAQ script for preview toggle functionality
+		wp_enqueue_script(
+			'nlf-faq-frontend',
+			NLF_FAQ_PLUGIN_URL . 'assets/js/frontend-faq.js',
+			array(),
+			NLF_FAQ_VERSION,
+			true
+		);
+
 		wp_enqueue_script(
 			'nlf-faq-group-metabox',
 			NLF_FAQ_PLUGIN_URL . 'assets/js/admin-faq-group-metabox.js',
-			array( 'wp-editor', 'wp-color-picker' ),
+			array( 'wp-editor', 'wp-color-picker', 'nlf-faq-frontend' ),
 			NLF_FAQ_VERSION,
 			true
 		);
