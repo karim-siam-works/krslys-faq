@@ -514,9 +514,9 @@ public static function enqueue_assets( $hook_suffix ) {
 
 			<div class="nlf-faq-tools__grid">
 				<section class="nlf-faq-tools__card">
-					<h2><?php esc_html_e( 'Context7 Export', 'next-level-faq' ); ?></h2>
+					<h2><?php esc_html_e( 'Export', 'next-level-faq' ); ?></h2>
 					<p class="description">
-						<?php esc_html_e( 'Generate a Context7-ready JSON bundle with your FAQ styles and entries for backups or migrations.', 'next-level-faq' ); ?>
+						<?php esc_html_e( 'Generate a JSON bundle with your FAQ styles and entries for backups or migrations.', 'next-level-faq' ); ?>
 					</p>
 
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="nlf-faq-tools__form">
@@ -552,9 +552,9 @@ public static function enqueue_assets( $hook_suffix ) {
 				</section>
 
 				<section class="nlf-faq-tools__card">
-					<h2><?php esc_html_e( 'Context7 Import', 'next-level-faq' ); ?></h2>
+					<h2><?php esc_html_e( 'Import', 'next-level-faq' ); ?></h2>
 					<p class="description">
-						<?php esc_html_e( 'Upload a Context7 export file from this or another site to synchronize FAQs safely.', 'next-level-faq' ); ?>
+						<?php esc_html_e( 'Upload an export file from this or another site to synchronize FAQs safely.', 'next-level-faq' ); ?>
 					</p>
 
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="nlf-faq-tools__form" enctype="multipart/form-data">
@@ -562,7 +562,7 @@ public static function enqueue_assets( $hook_suffix ) {
 						<input type="hidden" name="action" value="nlf_faq_import" />
 
 						<label for="nlf-faq-import-file" class="nlf-faq-tools__field-label">
-							<?php esc_html_e( 'Select Context7 export (.json)', 'next-level-faq' ); ?>
+							<?php esc_html_e( 'Select export file (.json)', 'next-level-faq' ); ?>
 						</label>
 						<input type="file" id="nlf-faq-import-file" name="nlf_faq_import_file" accept=".json,application/json" required />
 
@@ -669,7 +669,7 @@ public static function handle_export() {
 
 		$payload = array(
 			'meta' => array(
-				'schema'         => 'context7.nlf-faq-tools.v1',
+				'schema'         => 'nlf-faq-tools.v1',
 				'plugin_version' => NLF_FAQ_VERSION,
 				'db_version'     => get_option( 'nlf_faq_db_version', NLF_FAQ_DB_VERSION ),
 				'site_url'       => home_url(),
@@ -704,7 +704,7 @@ public static function handle_export() {
 		nocache_headers();
 		header( 'Content-Type: application/json; charset=utf-8' );
 	header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
-	header( 'X-Export-Context: context7' );
+	header( 'X-Export-Context: nlf-faq' );
 
 	echo wp_json_encode(
 			$payload,
@@ -734,7 +734,7 @@ public static function handle_import() {
 	$page_url = self::get_tools_page_url();
 
 	if ( empty( $_FILES['nlf_faq_import_file'] ) ) {
-		self::store_tools_notice( 'error', __( 'Upload a Context7 export file before running import.', 'next-level-faq' ) );
+		self::store_tools_notice( 'error', __( 'Upload an export file before running import.', 'next-level-faq' ) );
 		wp_safe_redirect( $page_url );
 		exit;
 	}
@@ -756,7 +756,7 @@ public static function handle_import() {
 	$data = self::decode_import_file( $file['tmp_name'] );
 
 		if ( null === $data ) {
-			self::store_tools_notice( 'error', __( 'The uploaded file is not a valid Context7 export.', 'next-level-faq' ) );
+			self::store_tools_notice( 'error', __( 'The uploaded file is not a valid export.', 'next-level-faq' ) );
 			wp_safe_redirect( $page_url );
 			exit;
 		}
