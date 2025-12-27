@@ -137,6 +137,30 @@ class Admin_UI_Components {
 	}
 
 	/**
+	 * Render mobile preview notice.
+	 * Shown on small screens where preview cannot display properly.
+	 */
+	public static function mobile_preview_notice() {
+		?>
+		<div class="nlf-preview-mobile-notice">
+			<div class="nlf-preview-mobile-notice__inner">
+				<div class="nlf-preview-mobile-notice__icon">
+					<span class="dashicons dashicons-laptop"></span>
+				</div>
+				<div class="nlf-preview-mobile-notice__content">
+					<h4 class="nlf-preview-mobile-notice__title"><?php esc_html_e( 'Preview requires a larger screen', 'next-level-faq' ); ?></h4>
+					<p class="nlf-preview-mobile-notice__desc"><?php esc_html_e( 'The live preview needs more space to display accurately. Your changes are saved automatically.', 'next-level-faq' ); ?></p>
+					<span class="nlf-preview-mobile-notice__hint">
+						<span class="dashicons dashicons-saved"></span>
+						<?php esc_html_e( 'Open on desktop or tablet to preview', 'next-level-faq' ); ?>
+					</span>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Helper to build data attributes.
 	 *
 	 * @param array $data Key => value pairs.

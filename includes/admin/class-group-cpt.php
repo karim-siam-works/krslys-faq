@@ -238,6 +238,9 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 				</button>
 			</div>
 
+			<!-- Mobile Preview Notice (outside tabs for visibility) -->
+			<?php Admin_UI_Components::mobile_preview_notice(); ?>
+
 			<!-- Tab Panels -->
 			<div class="nlf-faq-tabs-content">
 				<!-- Content Tab (FAQ Items + Settings) -->

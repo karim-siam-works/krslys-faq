@@ -350,6 +350,7 @@ public static function enqueue_assets( $hook_suffix ) {
 				</div>
 
 				<div class="nlf-faq-admin__right">
+					<?php Admin_UI_Components::mobile_preview_notice(); ?>
 					<h2><?php esc_html_e( 'Live Preview', 'next-level-faq' ); ?></h2>
 					<p class="description"><?php esc_html_e( 'Preview shows how your FAQ will look with the current style settings.', 'next-level-faq' ); ?></p>
 
