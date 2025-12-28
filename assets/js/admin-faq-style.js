@@ -110,7 +110,8 @@
 			'question_font_weight', 'answer_font_size', 'gap_between_items'];
 		if (numericProps.indexOf(prop) !== -1) {
 			value = parseInt(value, 10) || (prop === 'question_font_weight' ? 600 : 
-				prop === 'question_font_size' ? 16 : prop === 'answer_font_size' ? 14 : 0);
+				prop === 'question_font_size' ? 16 : prop === 'answer_font_size' ? 14 : 
+				prop === 'gap_between_items' ? 12 : 0);
 		} else if (prop === 'shadow') {
 			value = value ? 1 : 0;
 		}
