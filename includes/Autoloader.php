@@ -133,7 +133,7 @@ class Autoloader {
 		}
 		
 		// Core classes: Options, Repository, Style_Generator.
-		$core_classes = array( 'Options', 'Repository', 'Style_Generator', 'Cache' );
+		$core_classes = array( 'Options', 'Repository', 'Style_Generator', 'Cache', 'Presets' );
 		if ( in_array( $class_name, $core_classes, true ) ) {
 			return 'core';
 		}

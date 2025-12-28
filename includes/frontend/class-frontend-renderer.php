@@ -184,11 +184,15 @@ public static function render_shortcode( $atts, $content = '' ) {
 					'title'      => __( 'Frequently Asked Questions', 'next-level-faq' ),
 					'group'      => '',
 					'group_slug' => '',
+					'preset'     => '',
 				),
 				$atts,
 				'nlf_faq'
 			)
 		);
+
+	$preset_slug = Options::get_active_preset_slug( Options::get_options(), $atts['preset'] );
+	$resolved_options = Options::resolve_for_preset( $preset_slug, Options::get_options() );
 
 	$group_id = $atts['group'];
 
@@ -215,6 +219,9 @@ public static function render_shortcode( $atts, $content = '' ) {
 
 		$items = Repository::get_all_published_faqs( $group_id );
 
+		$use_custom_style = $group_id ? (bool) get_post_meta( $group_id, '_nlf_faq_group_use_custom_style', true ) : false;
+		$inline_style     = $use_custom_style ? '' : Style_Generator::build_inline_style( $resolved_options );
+
 		if ( ! is_array( $items ) ) {
 			$items = array();
 		}
@@ -224,6 +231,8 @@ public static function render_shortcode( $atts, $content = '' ) {
 				'title' => $atts['title'],
 			),
 			'settings' => $settings,
+			'preset'   => $preset_slug,
+			'use_custom_style' => $use_custom_style,
 		);
 
 		if ( $group_id > 0 ) {
@@ -245,7 +254,12 @@ public static function render_shortcode( $atts, $content = '' ) {
 			data-group-id="<?php echo esc_attr( $group_id ); ?>"
 			data-animation-speed="<?php echo esc_attr( $settings['animation_speed'] ?? 'normal' ); ?>"
 			data-accordion="<?php echo ! empty( $settings['accordion_mode'] ) ? '1' : '0'; ?>"
-			data-smooth-scroll="<?php echo ! empty( $settings['smooth_scroll'] ) ? '1' : '0'; ?>">
+			data-smooth-scroll="<?php echo ! empty( $settings['smooth_scroll'] ) ? '1' : '0'; ?>"
+			data-preset="<?php echo esc_attr( $preset_slug ); ?>"
+			<?php if ( $inline_style ) : ?>
+				style="<?php echo esc_attr( $inline_style ); ?>"
+			<?php endif; ?>
+			>
 			<?php if ( '' !== $atts['title'] ) : ?>
 				<h2 class="nlf-faq__title"><?php echo esc_html( $atts['title'] ); ?></h2>
 			<?php endif; ?>
@@ -326,6 +340,7 @@ public static function render_shortcode( $atts, $content = '' ) {
 			'title'      => sanitize_text_field( $atts['title'] ?? '' ),
 			'group'      => absint( $atts['group'] ?? 0 ),
 			'group_slug' => sanitize_title( $atts['group_slug'] ?? '' ),
+			'preset'     => sanitize_key( $atts['preset'] ?? '' ),
 		);
 	}
 }

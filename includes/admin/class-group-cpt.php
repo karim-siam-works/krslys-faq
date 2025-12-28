@@ -1171,6 +1171,7 @@ public static function enqueue_admin_assets( $hook_suffix ) {
 	 */
 	private static function render_custom_styles( $use_custom_style, $custom_styles ) {
 		$default_styles = Options::get_defaults();
+		unset( $default_styles['preset'] );
 		?>
 		<div class="nlf-style-wrapper">
 			<div class="nlf-style-toggle">

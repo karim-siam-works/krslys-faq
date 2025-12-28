@@ -52,34 +52,14 @@ class Style_Generator {
 	 *
 	 * SECURITY: All option values escaped with esc_html() before output.
 	 *
-	 * @param array $options Options.
+	 * @param array $options Options (resolved with presets recommended).
 	 *
 	 * @return string
 	 */
 	public static function build_css( $options ) {
-		$o = wp_parse_args( $options, Options::get_defaults() );
-
-		// Convert px to rem (base: 16px = 1rem).
-		$border_radius_rem = round( intval( $o['container_border_radius'] ) / 16, 3 );
-		$padding_rem       = round( intval( $o['container_padding'] ) / 16, 3 );
-		$question_font_rem = round( intval( $o['question_font_size'] ) / 16, 3 );
-		$answer_font_rem   = round( intval( $o['answer_font_size'] ) / 16, 3 );
-		$gap_rem           = round( intval( $o['gap_between_items'] ) / 16, 3 );
-
-		// Shadow values.
-		$shadow_css = ! empty( $o['shadow'] )
-			? '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)'
-			: 'none';
-
-		// Transitions (200ms ease as per modern standards).
-		$transition_base = '200ms ease';
-		$answer_transition = 'max-height 220ms ease, opacity 200ms ease, transform 200ms ease';
-
-		if ( 'fade' === $o['animation'] ) {
-			$answer_transition = 'opacity 200ms ease';
-		} elseif ( 'none' === $o['animation'] ) {
-			$answer_transition = 'none';
-		}
+		$normalized = self::normalize_options( $options );
+		$o          = $normalized['options'];
+		$c          = $normalized['computed'];
 
 		ob_start();
 		?>
@@ -105,21 +85,21 @@ class Style_Generator {
 	--nlf-faq-accent-color: <?php echo esc_html( $o['accent_color'] ); ?>;
 
 	/* Spacing (rem-based) */
-	--nlf-faq-border-radius: <?php echo esc_html( $border_radius_rem ); ?>rem;
-	--nlf-faq-padding: <?php echo esc_html( $padding_rem ); ?>rem;
-	--nlf-faq-gap: <?php echo esc_html( $gap_rem ); ?>rem;
+	--nlf-faq-border-radius: <?php echo esc_html( $c['border_radius_rem'] ); ?>rem;
+	--nlf-faq-padding: <?php echo esc_html( $c['padding_rem'] ); ?>rem;
+	--nlf-faq-gap: <?php echo esc_html( $c['gap_rem'] ); ?>rem;
 
 	/* Typography Sizes */
-	--nlf-faq-question-size: <?php echo esc_html( $question_font_rem ); ?>rem;
-	--nlf-faq-answer-size: <?php echo esc_html( $answer_font_rem ); ?>rem;
+	--nlf-faq-question-size: <?php echo esc_html( $c['question_font_rem'] ); ?>rem;
+	--nlf-faq-answer-size: <?php echo esc_html( $c['answer_font_rem'] ); ?>rem;
 	--nlf-faq-question-weight: <?php echo intval( $o['question_font_weight'] ); ?>;
 
 	/* Shadows */
-	--nlf-faq-shadow: <?php echo esc_html( $shadow_css ); ?>;
+	--nlf-faq-shadow: <?php echo esc_html( $c['shadow_css'] ); ?>;
 
 	/* Transitions */
-	--nlf-faq-transition: <?php echo esc_html( $transition_base ); ?>;
-	--nlf-faq-answer-transition: <?php echo esc_html( $answer_transition ); ?>;
+	--nlf-faq-transition: <?php echo esc_html( $c['transition_base'] ); ?>;
+	--nlf-faq-answer-transition: <?php echo esc_html( $c['answer_transition'] ); ?>;
 }
 
 /* ============================================
@@ -429,7 +409,7 @@ class Style_Generator {
 	 * @return bool True on success, false on failure.
 	 */
 	public static function generate_and_save() {
-		$options = Options::get_options();
+		$options = Options::get_resolved_options();
 		$css     = self::build_css( $options );
 		$path    = self::get_css_file_path();
 
@@ -508,7 +488,8 @@ class Style_Generator {
 			return false;
 		}
 
-		$css  = self::build_css( $options );
+		$resolved_options = Options::resolve_for_preset( $options['preset'] ?? null, $options );
+		$css  = self::build_css( $resolved_options );
 		$path = self::get_group_css_file_path( $group_id );
 
 		if ( ! $path ) {
@@ -581,5 +562,90 @@ class Style_Generator {
 		}
 
 		return $deleted;
+	}
+
+	/**
+	 * Build inline CSS variable declarations for a rendered FAQ wrapper.
+	 *
+	 * @param array $options Options (resolved).
+	 *
+	 * @return string
+	 */
+	public static function build_inline_style( $options ) {
+		$normalized = self::normalize_options( $options );
+		$o          = $normalized['options'];
+		$c          = $normalized['computed'];
+
+		$props = array(
+			'--nlf-faq-container-bg'    => $o['container_background'],
+			'--nlf-faq-border-color'    => $o['container_border_color'],
+			'--nlf-faq-question-color'  => $o['question_color'],
+			'--nlf-faq-answer-color'    => $o['answer_color'],
+			'--nlf-faq-accent-color'    => $o['accent_color'],
+			'--nlf-faq-border-radius'   => $c['border_radius_rem'] . 'rem',
+			'--nlf-faq-padding'         => $c['padding_rem'] . 'rem',
+			'--nlf-faq-gap'             => $c['gap_rem'] . 'rem',
+			'--nlf-faq-question-size'   => $c['question_font_rem'] . 'rem',
+			'--nlf-faq-answer-size'     => $c['answer_font_rem'] . 'rem',
+			'--nlf-faq-question-weight' => (string) intval( $o['question_font_weight'] ),
+			'--nlf-faq-shadow'          => $c['shadow_css'],
+			'--nlf-faq-transition'      => $c['transition_base'],
+			'--nlf-faq-answer-transition' => $c['answer_transition'],
+		);
+
+		$parts = array();
+
+		foreach ( $props as $name => $value ) {
+			if ( '' === $value && '0' !== $value ) {
+				continue;
+			}
+			$parts[] = $name . ':' . $value;
+		}
+
+		return implode( ';', $parts );
+	}
+
+	/**
+	 * Normalize options and compute derivative values for CSS.
+	 *
+	 * @param array $options Raw/resolved options.
+	 *
+	 * @return array
+	 */
+	private static function normalize_options( $options ) {
+		$o = Options::resolve_for_preset( $options['preset'] ?? null, $options );
+
+		$border_radius_rem = round( intval( $o['container_border_radius'] ) / 16, 3 );
+		$padding_rem       = round( intval( $o['container_padding'] ) / 16, 3 );
+		$question_font_rem = round( intval( $o['question_font_size'] ) / 16, 3 );
+		$answer_font_rem   = round( intval( $o['answer_font_size'] ) / 16, 3 );
+		$gap_rem           = round( intval( $o['gap_between_items'] ) / 16, 3 );
+
+		$shadow_css = ! empty( $o['shadow'] )
+			? '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)'
+			: 'none';
+
+		$transition_base   = '200ms ease';
+		$answer_transition = 'max-height 220ms ease, opacity 200ms ease, transform 200ms ease';
+
+		if ( 'fade' === $o['animation'] ) {
+			$answer_transition = 'opacity 200ms ease';
+		} elseif ( 'none' === $o['animation'] ) {
+			$answer_transition = 'none';
+		}
+
+		return array(
+			'options'  => $o,
+			'computed' => array(
+				'border_radius_rem'  => $border_radius_rem,
+				'padding_rem'        => $padding_rem,
+				'question_font_rem'  => $question_font_rem,
+				'answer_font_rem'    => $answer_font_rem,
+				'gap_rem'            => $gap_rem,
+				'shadow_css'         => $shadow_css,
+				'transition_base'    => $transition_base,
+				'answer_transition'  => $answer_transition,
+			),
+		);
 	}
 }

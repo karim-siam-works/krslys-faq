@@ -111,6 +111,16 @@ final class Krslys_NextLevelFaq_Plugin {
 						true
 					);
 
+					wp_localize_script(
+						'nlf-faq-block-editor',
+						'nlfFaqBlockData',
+						array(
+							'presets'       => \Krslys\NextLevelFaq\Options::get_preset_registry(),
+							'activePreset'  => \Krslys\NextLevelFaq\Options::get_active_preset_slug( \Krslys\NextLevelFaq\Options::get_options() ),
+							'defaultPreset' => \Krslys\NextLevelFaq\Options::get_default_preset_slug(),
+						)
+					);
+
 					// Set script translations for the block editor.
 					if ( function_exists( 'wp_set_script_translations' ) ) {
 						wp_set_script_translations( 'nlf-faq-block-editor', 'next-level-faq', NLF_FAQ_PLUGIN_DIR . 'languages' );
@@ -140,6 +150,7 @@ final class Krslys_NextLevelFaq_Plugin {
 							'render_callback' => function( $attributes, $content ) {
 								$group_id = isset( $attributes['groupId'] ) ? (int) $attributes['groupId'] : 0;
 								$title    = isset( $attributes['title'] ) ? (string) $attributes['title'] : '';
+								$preset   = isset( $attributes['preset'] ) ? sanitize_key( $attributes['preset'] ) : '';
 
 								$shortcode = '[nlf_faq';
 
@@ -149,6 +160,10 @@ final class Krslys_NextLevelFaq_Plugin {
 
 								if ( '' !== $title ) {
 									$shortcode .= ' title="' . esc_attr( $title ) . '"';
+								}
+
+								if ( '' !== $preset && \Krslys\NextLevelFaq\Options::is_valid_preset_slug( $preset ) ) {
+									$shortcode .= ' preset="' . esc_attr( $preset ) . '"';
 								}
 
 								$shortcode .= ']';

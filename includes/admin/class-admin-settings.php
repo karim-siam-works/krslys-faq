@@ -182,6 +182,11 @@ public static function enqueue_assets( $hook_suffix ) {
 					'saving' => __( 'Saving…', 'next-level-faq' ),
 					'saved'  => __( 'Saved', 'next-level-faq' ),
 				),
+				'presets'        => Options::get_preset_registry(),
+				'activePreset'   => Options::get_active_preset_slug( Options::get_options() ),
+				'defaultPreset'  => Options::get_default_preset_slug(),
+				'optionKey'      => Options::OPTION_KEY,
+				'currentOptions' => Options::get_resolved_options(),
 			)
 		);
 	}
@@ -196,13 +201,50 @@ public static function enqueue_assets( $hook_suffix ) {
 			return;
 		}
 
-		$options = Options::get_options();
+		$options       = Options::get_resolved_options();
+		$presets       = Options::get_preset_registry();
+		$active_preset = Options::get_active_preset_slug( $options );
 		?>
 		<div class="wrap nlf-faq-admin">
 			<h1><?php esc_html_e( 'Next Level FAQ – Style & Layout', 'next-level-faq' ); ?></h1>
 
 			<div class="nlf-faq-admin__layout">
 				<div class="nlf-faq-admin__left">
+					<div class="nlf-section">
+						<div class="nlf-section-header">
+							<h2><?php esc_html_e( 'Theme presets', 'next-level-faq' ); ?></h2>
+							<p class="description"><?php esc_html_e( 'Pick a curated starting point, then fine-tune colors, spacing, and typography below.', 'next-level-faq' ); ?></p>
+						</div>
+						<div class="nlf-theme-grid" id="nlf-preset-grid" data-current-preset="<?php echo esc_attr( $active_preset ); ?>">
+							<?php foreach ( $presets as $slug => $preset ) : ?>
+								<?php $values = $preset['values']; ?>
+								<label class="nlf-theme-card nlf-preset-card <?php echo esc_attr( $active_preset === $slug ? 'active' : '' ); ?>">
+									<input type="radio"
+										name="<?php echo esc_attr( Options::OPTION_KEY ); ?>[preset]"
+										value="<?php echo esc_attr( $slug ); ?>"
+										<?php checked( $active_preset, $slug ); ?>
+										data-preset-choice
+									/>
+									<span class="screen-reader-text"><?php echo esc_html( $preset['name'] ); ?></span>
+									<div class="nlf-theme-preview" style="
+										background: <?php echo esc_attr( $values['container_background'] ); ?>;
+										border-color: <?php echo esc_attr( $values['container_border_color'] ); ?>;
+										color: <?php echo esc_attr( $values['answer_color'] ); ?>;">
+										<div class="nlf-theme-preview-question" style="color: <?php echo esc_attr( $values['question_color'] ); ?>;">
+											<?php esc_html_e( 'Sample question?', 'next-level-faq' ); ?>
+										</div>
+										<div class="nlf-theme-preview-answer">
+											<?php esc_html_e( 'Sample answer text…', 'next-level-faq' ); ?>
+										</div>
+										<div class="nlf-theme-preview-accent" style="background: <?php echo esc_attr( $values['accent_color'] ); ?>;"></div>
+									</div>
+									<div class="nlf-theme-name"><?php echo esc_html( $preset['name'] ); ?></div>
+									<p class="description" style="margin:0; padding: 0 var(--spacing-3) var(--spacing-3);"><?php echo esc_html( $preset['description'] ); ?></p>
+								</label>
+							<?php endforeach; ?>
+						</div>
+					</div>
+
 					<form method="post" action="options.php" id="nlf-faq-style-form">
 						<?php
 						settings_fields( 'nlf_faq_style_group' );
@@ -369,6 +411,7 @@ public static function enqueue_assets( $hook_suffix ) {
 						data-shadow="<?php echo esc_attr( $options['shadow'] ? '1' : '0' ); ?>"
 						data-icon-style="<?php echo esc_attr( $options['icon_style'] ); ?>"
 						data-animation="<?php echo esc_attr( $options['animation'] ); ?>"
+						data-preset="<?php echo esc_attr( $active_preset ); ?>"
 					>
 						<div class="nlf-faq nlf-faq--preview">
 							<div class="nlf-faq__item is-open">

@@ -1,6 +1,10 @@
 (function ($) {
 	'use strict';
 
+	var presetRegistry = (window.nlfFaqAdmin && nlfFaqAdmin.presets) || {};
+	var activePreset = (window.nlfFaqAdmin && nlfFaqAdmin.activePreset) || null;
+	var optionKey = (window.nlfFaqAdmin && nlfFaqAdmin.optionKey) || 'nlf_faq_style_options';
+
 	function applyPreviewFromData() {
 		var root = $('#nlf-faq-preview-root');
 		if (!root.length) {
@@ -97,7 +101,8 @@
 			'gap_between_items': 'gap-between-items',
 			'shadow': 'shadow',
 			'animation': 'animation',
-			'icon_style': 'icon-style'
+			'icon_style': 'icon-style',
+			'preset': 'preset'
 		};
 
 		var dataKey = propMap[prop];
@@ -118,6 +123,61 @@
 
 		root.data(dataKey, value);
 		applyPreviewFromData();
+	}
+
+	function getPresetValues(slug) {
+		if (!slug || !presetRegistry[slug]) {
+			return null;
+		}
+		return presetRegistry[slug].values || null;
+	}
+
+	function setActivePresetCard(slug) {
+		activePreset = slug;
+		$('.nlf-preset-card').removeClass('active');
+		$('.nlf-preset-card input[data-preset-choice]').each(function () {
+			if ($(this).val() === slug) {
+				$(this).closest('.nlf-preset-card').addClass('active');
+			}
+		});
+	}
+
+	function applyPreset(slug) {
+		var values = getPresetValues(slug);
+		if (!values) {
+			return;
+		}
+
+		var optionPrefix = optionKey + '[';
+
+		Object.keys(values).forEach(function (key) {
+			var selector = '[name="' + optionPrefix + key + '"]';
+			var $field = $(selector);
+			var val = values[key];
+
+			if (!$field.length) {
+				return;
+			}
+
+			if ($field.is(':checkbox')) {
+				$field.prop('checked', !!val);
+			} else {
+				$field.val(val);
+			}
+
+			if ($field.hasClass('nlf-color-field') && typeof $field.wpColorPicker === 'function' && $field.data('wpWpColorPicker')) {
+				$field.wpColorPicker('color', val);
+			}
+
+			updateDataProp(key, val);
+		});
+
+		// Set preset radios.
+		$('input[data-preset-choice]').prop('checked', false);
+		$('input[data-preset-choice][value="' + slug + '"]').prop('checked', true);
+
+		updateDataProp('preset', slug);
+		setActivePresetCard(slug);
 	}
 
 	$(function () {
@@ -159,6 +219,17 @@
 
 			updateDataProp(prop, val);
 		});
+
+		// Preset selection.
+		$(document).on('change', 'input[data-preset-choice]', function () {
+			var slug = $(this).val();
+			applyPreset(slug);
+		});
+
+		// Initialize active preset highlighting.
+		if (activePreset) {
+			setActivePresetCard(activePreset);
+		}
 
 		// Simple saved indicator using WordPress submit button.
 		var $form = $('#nlf-faq-style-form');
