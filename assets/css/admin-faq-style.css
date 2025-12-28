@@ -999,6 +999,19 @@
 	gap: var(--spacing-2);
 }
 
+.nlf-refresh-preview .dashicons {
+	width: 16px;
+	height: 16px;
+}
+
+.nlf-refresh-preview .dashicons::before {
+	font-family: "dashicons";
+	font-size: 16px;
+	line-height: 1;
+	display: inline-block;
+	vertical-align: middle;
+}
+
 .nlf-preview-notice {
 	display: flex;
 	align-items: center;
