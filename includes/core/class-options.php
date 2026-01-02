@@ -65,10 +65,15 @@ class Options {
 	 */
 	public static function get_options() {
 		$defaults = self::get_defaults();
-		$saved    = get_option( self::OPTION_KEY, array() );
+		$saved    = Settings_Repository::get_setting( Settings_Repository::KEY_GLOBAL_STYLES, array() );
 
 		if ( ! is_array( $saved ) ) {
 			$saved = array();
+		}
+
+		// Debug logging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'NLF Options::get_options() - Preset from DB: ' . ( isset( $saved['preset'] ) ? $saved['preset'] : 'NOT SET' ) );
 		}
 
 		return wp_parse_args( $saved, $defaults );
@@ -215,26 +220,30 @@ class Options {
 
 	$sanitized['gap_between_items'] = isset( $raw['gap_between_items'] ) ? max( 0, intval( $raw['gap_between_items'] ) ) : ( $preset_defaults['gap_between_items'] ?? $defaults['gap_between_items'] );
 	
-	$sanitized['shadow'] = isset( $raw['shadow'] ) ? ! empty( $raw['shadow'] ) : (bool) ( $preset_defaults['shadow'] ?? $defaults['shadow'] );
+	// Shadow checkbox - if not present in $raw, it means unchecked (false)
+	$sanitized['shadow'] = ! empty( $raw['shadow'] );
 
 	$allowed_animation = array( 'slide', 'fade', 'none' );
-		$sanitized['animation'] = in_array( $raw['animation'] ?? '', $allowed_animation, true )
-			? $raw['animation']
-			: ( $preset_defaults['animation'] ?? $defaults['animation'] );
+	$sanitized['animation'] = in_array( $raw['animation'] ?? '', $allowed_animation, true )
+		? $raw['animation']
+		: ( $preset_defaults['animation'] ?? $defaults['animation'] );
 
-		return $sanitized;
+	return $sanitized;
 	}
 
 	/**
 	 * Activation callback.
 	 */
 	public static function activate() {
-		if ( false === get_option( self::OPTION_KEY, false ) ) {
-			add_option( self::OPTION_KEY, self::get_defaults() );
+		// Initialize settings in new settings table
+		if ( ! Settings_Repository::setting_exists( Settings_Repository::KEY_GLOBAL_STYLES ) ) {
+			Settings_Repository::update_setting( Settings_Repository::KEY_GLOBAL_STYLES, self::get_defaults() );
 		}
 
+		// Generate CSS for all presets
 		if ( class_exists( 'Krslys\NextLevelFaq\Style_Generator' ) ) {
-			Style_Generator::generate_and_save();
+			Style_Generator::generate_all_presets();
+			Settings_Repository::update_setting( 'presets_css_version', NLF_FAQ_VERSION );
 		}
 	}
 }

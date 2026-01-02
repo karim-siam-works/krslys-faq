@@ -443,6 +443,17 @@ class Style_Generator {
 	}
 
 	/**
+	 * Generate CSS for all presets (used on activation).
+	 * 
+	 * This generates the main global CSS file.
+	 *
+	 * @return bool True on success, false on failure.
+	 */
+	public static function generate_all_presets() {
+		return self::generate_and_save();
+	}
+
+	/**
 	 * Get path to group-specific CSS file.
 	 *
 	 * @param int $group_id Group ID.

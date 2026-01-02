@@ -132,8 +132,17 @@ class Autoloader {
 			return 'frontend';
 		}
 		
-		// Core classes: Options, Repository, Style_Generator.
-		$core_classes = array( 'Options', 'Repository', 'Style_Generator', 'Cache', 'Presets' );
+		// Core classes: Options, Repository, Style_Generator, Database, etc.
+		$core_classes = array( 
+			'Options', 
+			'Repository', 
+			'Style_Generator', 
+			'Cache', 
+			'Presets',
+			'Database',
+			'Groups_Repository',
+			'Settings_Repository',
+		);
 		if ( in_array( $class_name, $core_classes, true ) ) {
 			return 'core';
 		}

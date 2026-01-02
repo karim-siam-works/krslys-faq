@@ -17,7 +17,8 @@ define( 'NLF_FAQ_VERSION', '1.0.0' );
 define( 'NLF_FAQ_PLUGIN_FILE', __FILE__ );
 define( 'NLF_FAQ_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'NLF_FAQ_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'NLF_FAQ_DB_VERSION', '1.3.0' );
+define( 'NLF_FAQ_DB_VERSION', '1.3.0' ); // Legacy, kept for cleanup
+define( 'NLF_FAQ_SCHEMA_VERSION', '2.0.0' ); // New schema version
 
 // Load PSR-4 autoloader.
 require_once NLF_FAQ_PLUGIN_DIR . 'includes/Autoloader.php';
@@ -72,11 +73,15 @@ final class Krslys_NextLevelFaq_Plugin {
 	 * Register hooks.
 	 */
 	private function hooks() {
+		// Activation hooks
+		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( '\Krslys\NextLevelFaq\Database', 'create_tables' ) );
+		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( '\Krslys\NextLevelFaq\Database', 'cleanup_legacy_data' ) );
+		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( '\Krslys\NextLevelFaq\Settings_Repository', 'initialize_defaults' ) );
 		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( '\Krslys\NextLevelFaq\Options', 'activate' ) );
-		register_activation_hook( NLF_FAQ_PLUGIN_FILE, array( '\Krslys\NextLevelFaq\Repository', 'maybe_create_table' ) );
 
+		// Core hooks
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-		add_action( 'plugins_loaded', array( '\Krslys\NextLevelFaq\Repository', 'maybe_create_table' ) );
+		add_action( 'plugins_loaded', array( '\Krslys\NextLevelFaq\Database', 'create_tables' ) );
 		add_action( 'init', array( '\Krslys\NextLevelFaq\Group_CPT', 'register' ) );
 		add_action( 'init', array( '\Krslys\NextLevelFaq\Frontend_Renderer', 'register_shortcodes' ) );
 		add_action( 'init', array( '\Krslys\NextLevelFaq\Frontend_Renderer', 'register_tracking_routes' ) );
@@ -84,10 +89,14 @@ final class Krslys_NextLevelFaq_Plugin {
 		add_action( 'admin_menu', array( '\Krslys\NextLevelFaq\Admin_Settings', 'register_menu' ) );
 		add_action( 'admin_init', array( '\Krslys\NextLevelFaq\Admin_Settings', 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( '\Krslys\NextLevelFaq\Admin_Settings', 'enqueue_assets' ) );
-		add_action( 'admin_post_nlf_faq_save_questions', array( '\Krslys\NextLevelFaq\Admin_Settings', 'handle_save_questions' ) );
 		add_action( 'admin_post_nlf_faq_export', array( '\Krslys\NextLevelFaq\Admin_Settings', 'handle_export' ) );
 		add_action( 'admin_post_nlf_faq_import', array( '\Krslys\NextLevelFaq\Admin_Settings', 'handle_import' ) );
-		add_action( 'update_option_' . \Krslys\NextLevelFaq\Options::OPTION_KEY, array( '\Krslys\NextLevelFaq\Style_Generator', 'generate_and_save' ), 10, 2 );
+		
+		// AJAX handlers for admin settings
+		add_action( 'wp_ajax_nlf_save_settings_ajax', array( '\Krslys\NextLevelFaq\Admin_Settings', 'handle_ajax_save_settings' ) );
+
+		// Style generation (no longer tied to wp_options update)
+		add_action( 'nlf_faq_settings_updated', array( '\Krslys\NextLevelFaq\Style_Generator', 'generate_and_save' ), 10, 2 );
 
 		// Gutenberg block registration using block.json and dynamic render.
 		if ( function_exists( 'register_block_type' ) ) {

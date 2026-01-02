@@ -77,15 +77,17 @@ class Repository {
 	/**
 	 * Get all FAQ items for a given group (any status) ordered by position/created date.
 	 *
-	 * Group ID 0 is used for the legacy global questions UI.
-	 *
 	 * SECURITY: Uses $wpdb->prepare() for group_id parameter.
 	 *
-	 * @param int $group_id Group ID.
+	 * @param int $group_id Group ID (must be > 0).
 	 * @return array
 	 */
-	public static function get_all_items( $group_id = 0 ) {
+	public static function get_all_items( $group_id ) {
 		global $wpdb;
+
+		if ( $group_id <= 0 ) {
+			return array();
+		}
 
 		$table = self::get_table_name();
 
@@ -103,7 +105,7 @@ class Repository {
 	 *
 	 * SECURITY: Uses $wpdb->prepare() for optional group_id filter.
 	 *
-	 * @param int|null $group_id Optional group filter (null = all groups).
+	 * @param int|null $group_id Optional group filter (null = all groups, must be > 0 if specified).
 	 * @return array[]
 	 */
 	public static function get_all_items_for_export( $group_id = null ) {
@@ -114,7 +116,14 @@ class Repository {
 		$where_sql = '';
 
 		if ( null !== $group_id ) {
-			$where_sql = $wpdb->prepare( 'WHERE group_id = %d', (int) $group_id );
+			$group_id = (int) $group_id;
+			if ( $group_id <= 0 ) {
+				return array();
+			}
+			$where_sql = $wpdb->prepare( 'WHERE group_id = %d', $group_id );
+		} else {
+			// Exclude legacy group_id = 0
+			$where_sql = 'WHERE group_id > 0';
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, WHERE clause prepared above.
@@ -146,17 +155,19 @@ class Repository {
 	}
 
 	/**
-	 * Get all published FAQs.
-	 *
-	 * Group ID 0 is used for the legacy global questions UI.
+	 * Get all published FAQs for a group.
 	 *
 	 * SECURITY: Uses $wpdb->prepare() for parameters.
 	 *
-	 * @param int $group_id Group ID.
+	 * @param int $group_id Group ID (must be > 0).
 	 * @return array
 	 */
-	public static function get_all_published_faqs( $group_id = 0 ) {
+	public static function get_all_published_faqs( $group_id ) {
 		global $wpdb;
+
+		if ( $group_id <= 0 ) {
+			return array();
+		}
 
 		$table = self::get_table_name();
 
@@ -231,10 +242,14 @@ class Repository {
 	 * - Uses $wpdb->prepare() with dynamic placeholder count.
 	 *
 	 * @param int[] $keep_ids IDs to keep.
-	 * @param int   $group_id Group ID scope.
+	 * @param int   $group_id Group ID scope (must be > 0).
 	 */
-	public static function delete_all_except( $keep_ids, $group_id = 0 ) {
+	public static function delete_all_except( $keep_ids, $group_id ) {
 		global $wpdb;
+
+		if ( $group_id <= 0 ) {
+			return;
+		}
 
 		$table = self::get_table_name();
 
@@ -245,17 +260,17 @@ class Repository {
 			}
 		);
 
-	if ( empty( $keep_ids ) ) {
-		$wpdb->query(
+		if ( empty( $keep_ids ) ) {
+			$wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$table} WHERE group_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
 					(int) $group_id
 				)
 			);
-		return;
-	}
+			return;
+		}
 
-	$placeholders = implode( ',', array_fill( 0, count( $keep_ids ), '%d' ) );
+		$placeholders = implode( ',', array_fill( 0, count( $keep_ids ), '%d' ) );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, placeholders are safe.
 		$wpdb->query(

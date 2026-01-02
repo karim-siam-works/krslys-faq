@@ -1500,10 +1500,10 @@ public static function save_metabox( $post_id, $post ) {
 
 		Repository::delete_all_except( $keep_ids, $post_id );
 
-		// Save Theme
-		if ( isset( $_POST['nlf_faq_group_theme'] ) ) {
-			update_post_meta( $post_id, '_nlf_faq_group_theme', sanitize_text_field( wp_unslash( $_POST['nlf_faq_group_theme'] ) ) );
-		}
+	// Save Theme
+	if ( isset( $_POST['nlf_faq_group_theme'] ) ) {
+		update_post_meta( $post_id, '_nlf_faq_group_theme', sanitize_text_field( wp_unslash( $_POST['nlf_faq_group_theme'] ) ) );
+	}
 
 		if ( isset( $_POST['nlf_faq_group_theme_custom'] ) && is_array( $_POST['nlf_faq_group_theme_custom'] ) ) {
 			$theme_custom = array_map( 'sanitize_hex_color', wp_unslash( $_POST['nlf_faq_group_theme_custom'] ) );
@@ -1655,6 +1655,18 @@ public static function handle_delete( $post_id ) {
 	public static function append_save_notice_flag( $location, $post_id ) {
 		if ( self::POST_TYPE !== get_post_type( $post_id ) ) {
 			return $location;
+		}
+
+		// Force redirect back to edit page (not post list)
+		// If WordPress wants to redirect to edit.php (post list), redirect to post.php (edit page) instead
+		if ( strpos( $location, 'edit.php' ) !== false ) {
+			$location = add_query_arg(
+				array(
+					'post'   => $post_id,
+					'action' => 'edit',
+				),
+				admin_url( 'post.php' )
+			);
 		}
 
 		return add_query_arg(

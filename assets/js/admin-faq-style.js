@@ -176,6 +176,10 @@
 		$('input[data-preset-choice]').prop('checked', false);
 		$('input[data-preset-choice][value="' + slug + '"]').prop('checked', true);
 
+		// IMPORTANT: Update the hidden preset field inside the form
+		// The radio buttons are outside the form, so we need to sync this hidden field
+		$('#nlf-faq-hidden-preset').val(slug);
+
 		updateDataProp('preset', slug);
 		setActivePresetCard(slug);
 	}
@@ -231,37 +235,112 @@
 			setActivePresetCard(activePreset);
 		}
 
-		// Simple saved indicator using WordPress submit button.
+		// AJAX form submission for instant save.
 		var $form = $('#nlf-faq-style-form');
 		var $submit = $form.find('input[type="submit"], button[type="submit"]');
+		var originalText = $submit.val() || $submit.text();
 
-		$form.on('submit', function () {
+		$form.on('submit', function (e) {
+			e.preventDefault();
+
 			if (!$submit.length || typeof nlfFaqAdmin === 'undefined') {
 				return;
 			}
-			var originalText = $submit.val() || $submit.text();
 
+			// Update button state
+			$submit.prop('disabled', true);
 			if ($submit.is('input')) {
 				$submit.val(nlfFaqAdmin.i18n.saving);
 			} else {
 				$submit.text(nlfFaqAdmin.i18n.saving);
 			}
 
-			setTimeout(function () {
-				if ($submit.is('input')) {
-					$submit.val(nlfFaqAdmin.i18n.saved);
-				} else {
-					$submit.text(nlfFaqAdmin.i18n.saved);
-				}
+			// Remove any previous notices
+			$('.nlf-ajax-notice').remove();
 
-				setTimeout(function () {
+			// Serialize form data
+			var formData = $form.serialize();
+			formData += '&action=nlf_save_settings_ajax';
+			formData += '&nonce=' + (nlfFaqAdmin.saveNonce || '');
+
+			// Send AJAX request
+			$.ajax({
+				url: ajaxurl,
+				type: 'POST',
+				data: formData,
+				success: function (response) {
+					if (response.success) {
+						// Show success message
+						if ($submit.is('input')) {
+							$submit.val(nlfFaqAdmin.i18n.saved);
+						} else {
+							$submit.text(nlfFaqAdmin.i18n.saved);
+						}
+
+						// Show success notice
+						$('<div class="notice notice-success is-dismissible nlf-ajax-notice"><p>' + 
+							(response.data.message || 'Settings saved successfully!') + 
+							'</p></div>')
+							.insertAfter('.wrap h1')
+							.hide()
+							.fadeIn();
+
+						// Restore button after delay
+						setTimeout(function () {
+							$submit.prop('disabled', false);
+							if ($submit.is('input')) {
+								$submit.val(originalText);
+							} else {
+								$submit.text(originalText);
+							}
+						}, 1500);
+
+						// Auto-hide notice after 3 seconds
+						setTimeout(function () {
+							$('.nlf-ajax-notice').fadeOut(function () {
+								$(this).remove();
+							});
+						}, 3000);
+					} else {
+						// Show error message
+						var errorMsg = response.data && response.data.message 
+							? response.data.message 
+							: 'Failed to save settings. Please try again.';
+
+						$('<div class="notice notice-error is-dismissible nlf-ajax-notice"><p>' + 
+							errorMsg + 
+							'</p></div>')
+							.insertAfter('.wrap h1')
+							.hide()
+							.fadeIn();
+
+						// Restore button
+						$submit.prop('disabled', false);
+						if ($submit.is('input')) {
+							$submit.val(originalText);
+						} else {
+							$submit.text(originalText);
+						}
+					}
+				},
+				error: function (xhr, status, error) {
+					// Show error message
+					$('<div class="notice notice-error is-dismissible nlf-ajax-notice"><p>' + 
+						'Network error: Failed to save settings. Please check your connection and try again.' + 
+						'</p></div>')
+						.insertAfter('.wrap h1')
+						.hide()
+						.fadeIn();
+
+					// Restore button
+					$submit.prop('disabled', false);
 					if ($submit.is('input')) {
 						$submit.val(originalText);
 					} else {
 						$submit.text(originalText);
 					}
-				}, 1200);
-			}, 400);
+				}
+			});
 		});
 	});
 })(jQuery);

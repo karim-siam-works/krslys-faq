@@ -12,7 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use WP_Post;
-use Krslys\NextLevelFaq\Group_CPT;
 
 /**
  * Front-end rendering and assets.
@@ -94,11 +93,15 @@ class Frontend_Renderer {
 			wp_send_json_error( array( 'message' => __( 'Invalid tracking payload.', 'next-level-faq' ) ), 400 );
 		}
 
-		$stats = get_post_meta( $group_id, '_nlf_faq_stats', true );
-
-		if ( ! is_array( $stats ) ) {
-			$stats = array();
+		// Get group to verify it exists
+		$group = Groups_Repository::get_group_by_id( $group_id );
+		if ( ! $group ) {
+			wp_send_json_error( array( 'message' => __( 'Group not found.', 'next-level-faq' ) ), 404 );
 		}
+
+		// Track stats in Settings_Repository or group metadata
+		$stats_key = 'group_' . $group_id . '_stats';
+		$stats = Settings_Repository::get_setting( $stats_key, array() );
 
 		if ( ! isset( $stats[ $question_id ] ) ) {
 			$stats[ $question_id ] = array(
@@ -113,7 +116,7 @@ class Frontend_Renderer {
 			$stats[ $question_id ]['closes'] ++;
 		}
 
-		update_post_meta( $group_id, '_nlf_faq_stats', $stats );
+		Settings_Repository::update_setting( $stats_key, $stats );
 
 		/**
 		 * Fires after an FAQ interaction is tracked.
@@ -142,9 +145,9 @@ class Frontend_Renderer {
 			return;
 		}
 
-		$use_custom_style = get_post_meta( $group_id, '_nlf_faq_group_use_custom_style', true );
+		$group = Groups_Repository::get_group_by_id( $group_id );
 
-		if ( empty( $use_custom_style ) ) {
+		if ( ! $group || empty( $group->use_custom_style ) ) {
 			return;
 		}
 
@@ -211,15 +214,28 @@ public static function render_shortcode( $atts, $content = '' ) {
 		// Get group-specific settings
 		$settings = array();
 		if ( $group_id ) {
-			$settings = get_post_meta( $group_id, '_nlf_faq_group_settings', true );
+			$group = Groups_Repository::get_group_by_id( $group_id );
+			if ( $group && ! empty( $group->display_settings ) ) {
+				$settings = $group->display_settings;
+			}
 		}
 		if ( ! is_array( $settings ) ) {
-			$settings = Group_CPT::get_default_settings();
+			$settings = array(
+				'accordion_mode'  => false,
+				'initial_state'   => 'all_closed',
+				'animation_speed' => 'normal',
+				'show_search'     => false,
+				'show_counter'    => false,
+				'smooth_scroll'   => true,
+			);
 		}
 
 		$items = Repository::get_all_published_faqs( $group_id );
 
-		$use_custom_style = $group_id ? (bool) get_post_meta( $group_id, '_nlf_faq_group_use_custom_style', true ) : false;
+		$use_custom_style = false;
+		if ( $group_id && isset( $group ) && $group ) {
+			$use_custom_style = $group->use_custom_style;
+		}
 		$inline_style     = $use_custom_style ? '' : Style_Generator::build_inline_style( $resolved_options );
 
 		if ( ! is_array( $items ) ) {
